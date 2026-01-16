@@ -1,18 +1,26 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(request: Request) {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {
-          return req.cookies
-            ? Object.entries(req.cookies).map(([name, value]) => ({ name, value }))
-            : [];
+          const cookieHeader = request.headers.get("cookie") ?? "";
+          return cookieHeader
+            .split(";")
+            .map((c) => c.trim())
+            .filter(Boolean)
+            .map((c) => {
+              const [name, ...rest] = c.split("=");
+              return { name, value: rest.join("=") };
+            });
         },
-        setAll() { return; },
+        setAll() {
+          return;
+        },
       },
     },
   );
@@ -20,16 +28,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const claimsRes = await supabase.auth.getClaims();
   const out: any = { claims: claimsRes.data ?? null };
 
-  // 1) Get auth.uid() and auth.jwt() via Postgres using SQL through the query builder
+  // 1) Try calling auth.uid() via a lightweight safe query (use pg_catalog table to avoid missing helper)
   try {
-    const { data: uidData, error: uidErr } = await supabase.rpc('auth_uid_helper');
-    // If you don't have rpc helper installed, we'll instead run a raw SQL via from().select on pg_catalog
-    out.auth_uid = uidErr ? { error: uidErr.message } : uidData;
+    const { data, error } = await supabase
+      .from('pg_catalog.pg_user') // a harmless table to call select via the client
+      .select('usename')
+      .limit(1);
+    out.pg_user_probe = error ? { error: error.message } : data;
   } catch (e: any) {
-    out.auth_uid = { error: e.message };
+    out.pg_user_probe = { error: e.message };
   }
 
-  // 2) Select directly from your schema.table
+  // 2) Query the glory.services_transactions table directly (correct schema qualification)
   try {
     const { data, error } = await supabase
       .from('glory.services_transactions')
@@ -40,5 +50,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     out.sample_rows = { error: e.message };
   }
 
-  res.status(200).json(out);
+  // 3) Also attempt to call a simple RPC that returns auth.uid() if present in your DB as an example:
+  // Note: many projects do not have this RPC; it's optional.
+  try {
+    const { data, error } = await supabase.rpc('get_auth_uid'); // optional helper name, may error
+    out.rpc_get_auth_uid = error ? { error: error.message } : data;
+  } catch (e: any) {
+    out.rpc_get_auth_uid = { error: e.message };
+  }
+
+  return NextResponse.json(out);
 }
