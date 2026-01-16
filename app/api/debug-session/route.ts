@@ -1,90 +1,44 @@
-import { NextResponse } from "next/server";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { createServerClient } from "@supabase/ssr";
 
-export async function GET(request: Request) {
-  // Create a NextResponse so we can read cookies the same way your middleware does
-  const url = new URL(request.url);
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {
-          // For Edge runtime Request, use request.headers.get('cookie')
-          const cookieHeader = request.headers.get("cookie") ?? "";
-          // Next's cookie parsing is not available here; do a simple split
-          // Return array of { name, value } for supabase client (it only needs name/value)
-          return cookieHeader
-            .split(";")
-            .map((c) => c.trim())
-            .filter(Boolean)
-            .map((c) => {
-              const [name, ...rest] = c.split("=");
-              return { name, value: rest.join("=") };
-            });
+          return req.cookies
+            ? Object.entries(req.cookies).map(([name, value]) => ({ name, value }))
+            : [];
         },
-        setAll() {
-          // No-op for debug route
-          return;
-        },
+        setAll() { return; },
       },
     },
   );
 
-  // Get claims client-side (SSR helper)
   const claimsRes = await supabase.auth.getClaims();
+  const out: any = { claims: claimsRes.data ?? null };
 
-  // Run SQL queries to inspect what Postgres auth.* functions return.
-  // We'll use rpc calls to select auth.uid() and auth.jwt() via SQL.
-  // Also attempt to call glory.get_auth_uid() if present.
-  // And run a small select from your table.
-  const queries = {
-    auth_uid: `select auth.uid() as uid;`,
-    auth_jwt: `select auth.jwt() as jwt;`,
-    helper_get_auth_uid: `select case when (select proname from pg_proc where proname = 'get_auth_uid' and pronamespace = (select oid from pg_namespace where nspname = 'glory')) is not null then (select glory.get_auth_uid()::text) else null end as helper;`,
-    sample_rows: `select * from glory.services_transactions limit 5;`,
-  };
-
-  // Execute queries one by one so we can capture errors separately
-  const results: Record<string, any> = { claims: claimsRes.data ?? null };
-
+  // 1) Get auth.uid() and auth.jwt() via Postgres using SQL through the query builder
   try {
-    const { data: uidData, error: uidErr } = await supabase.rpc("sql", {
-      q: queries.auth_uid,
-    } as any);
-    // If rpc('sql') is not available, fall back to from().select() on a safe table
-    results.auth_uid = uidErr ? { error: uidErr.message } : uidData;
+    const { data: uidData, error: uidErr } = await supabase.rpc('auth_uid_helper');
+    // If you don't have rpc helper installed, we'll instead run a raw SQL via from().select on pg_catalog
+    out.auth_uid = uidErr ? { error: uidErr.message } : uidData;
   } catch (e: any) {
-    results.auth_uid = { error: e.message };
+    out.auth_uid = { error: e.message };
   }
 
+  // 2) Select directly from your schema.table
   try {
-    const { data: jwtData, error: jwtErr } = await supabase.rpc("sql", {
-      q: queries.auth_jwt,
-    } as any);
-    results.auth_jwt = jwtErr ? { error: jwtErr.message } : jwtData;
-  } catch (e: any) {
-    results.auth_jwt = { error: e.message };
-  }
-
-  try {
-    const { data: helperData, error: helperErr } = await supabase.rpc("sql", {
-      q: queries.helper_get_auth_uid,
-    } as any);
-    results.helper_get_auth_uid = helperErr ? { error: helperErr.message } : helperData;
-  } catch (e: any) {
-    results.helper_get_auth_uid = { error: e.message };
-  }
-
-  try {
-    const { data: rows, error: rowsErr } = await supabase
-      .from("glory.services_transactions")
-      .select("*")
+    const { data, error } = await supabase
+      .from('glory.services_transactions')
+      .select('*')
       .limit(5);
-    results.sample_rows = rowsErr ? { error: rowsErr.message } : rows;
+    out.sample_rows = error ? { error: error.message } : data;
   } catch (e: any) {
-    results.sample_rows = { error: e.message };
+    out.sample_rows = { error: e.message };
   }
 
-  return NextResponse.json(results);
+  res.status(200).json(out);
 }
