@@ -39,25 +39,25 @@ export default function StoreProfilePage() {
   const branches = [
     {
       id: 1,
-      name: "Glory Cell Pusat (Glory Cikaret)",
+      name: "Glory Part Station 1 (Cab. Cikaret)",
       address: "Jl. Cikaret No 02B-C, Kel Harapan Jaya, Kec Cibinong, Kab Bogor",
       mapUrl: "https://maps.app.goo.gl/geJXhoaoWWXmTiK68",
       phone: "0881-1429-638",
       status: "Buka",
-      hours: "08:45 - 21:15 WIB"
+      hours: "09:00 - 21:30 WIB"
     },
     {
       id: 2,
-      name: "Glory Cell Cabang 2 (Glory Sukahati)",
+      name: "Glory Part Station 2 (Cab. Sukahati)",
       address: "Jl. Ksr Dadi Kusmayadi No 01, Kel Tengah, Kec Cibinong, Kab Bogor",
       mapUrl: "https://maps.app.goo.gl/yScXYPivacrLnv6e9",
       phone: "089-7399-7575",
       status: "Buka",
-      hours: "10:00 - 21:15 WIB"
+      hours: "09:00 - 21:30 WIB"
     },
     {
       id: 3,
-      name: "Glory Cell Cabang 3 (Glory ????????)",
+      name: "Glory Part Station 3 (Cab. ????????)",
       address: "Coming Soon...",
       mapUrl: "https://maps.google.com",
       phone: "-",

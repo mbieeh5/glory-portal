@@ -1,40 +1,17 @@
-import { ServiceTransaction, Sparepart } from "@/config/type";
-import { createClient } from "@supabase/supabase-js";
+import { PaginatedResponse, PaginationParams, ServiceTransaction, Sparepart } from "@/config/type";
+import { createClient } from "../supabase/client";
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
-)
-
-interface PaginationParams {
-    page?: number;
-    limit?: number;
-    search?: string; // Global search: invoice_id, customer_name, phone_brand, technician, imei, sparepart
-    month?: number; // 1-12
-    year?: number; // e.g., 2024, 2025
-    status?: 'in_process' | 'completed' | 'canceled' | 'picked_up' | 'all';
-}
-
-interface PaginatedResponse {
-    data: ServiceTransaction[];
-    pagination: {
-        currentPage: number;
-        totalPages: number;
-        totalRecords: number;
-        limit: number;
-        hasNextPage: boolean;
-        hasPrevPage: boolean;
-    }
-}
 
 export async function getMasterDataServices(params: PaginationParams = {}): Promise<PaginatedResponse> {
+    const supabase = createClient();
     const page = params.page || 1;
     const limit = params.limit || 30;
     const offset = (page - 1) * limit;
+    const globalSchema = 'glory';
 
     // Build query untuk transactions dengan filters
     let transactionQuery = supabase
-        .schema('glory')
+        .schema(globalSchema)
         .from('services_transactions')
         .select('*', { count: 'exact' });
 
@@ -65,10 +42,10 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
         const searchTerm = params.search.trim();
         transactionQuery = transactionQuery.or(
             `invoice_id.ilike.%${searchTerm}%,` +
-            `customer_name.ilike.%${searchTerm}%,` +
+            `customer_id.ilike.%${searchTerm}%,` +
             `phone_brand.ilike.%${searchTerm}%,` +
             `technician.ilike.%${searchTerm}%,` +
-            `imei.ilike.%${searchTerm}%`
+            `phone_imei.ilike.%${searchTerm}%`
         );
     }
 
@@ -114,10 +91,10 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     let sparepartMatchedInvoices: string[] = [];
     if (params.search && params.search.trim() !== '') {
         const { data: matchedSpareparts } = await supabase
-            .schema('glory')
+            .schema(globalSchema)
             .from('services_spareparts')
             .select('invoice_id')
-            .ilike('used_part', `%${params.search.trim()}%`);
+            .ilike('sparepart_name', `%${params.search.trim()}%`);
         
         if (matchedSpareparts) {
             sparepartMatchedInvoices = matchedSpareparts.map(sp => sp.invoice_id);
@@ -129,7 +106,7 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     if (sparepartMatchedInvoices.length > 0) {
         // Fetch additional transactions yang match sparepart search
         const { data: additionalTransactions } = await supabase
-            .schema('glory')
+            .schema(globalSchema)
             .from('services_transactions')
             .select('*')
             .in('invoice_id', sparepartMatchedInvoices)
@@ -151,21 +128,21 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
 
     // Fetch spareparts untuk invoice_ids yang di-fetch
     const { data: sparepartData, error: sparepartError } = await supabase
-        .schema('glory')
+        .schema(globalSchema)
         .from('services_spareparts')
         .select('*')
         .in('invoice_id', invoiceIds)
         .order('created_at', { ascending: false });
 
     // Extract customer_names dari transactions yang di-fetch
-    const customerNames = [...new Set(filteredTransactionData.map(t => t.customer_name))];
+    const customerNames = [...new Set(filteredTransactionData.map(t => t.customer_id))];
 
     // Fetch customers
     const { data: customersData, error: customersError } = await supabase
-        .schema('glory')
+        .schema(globalSchema)
         .from('services_customers')
         .select('*')
-        .in('nama', customerNames)
+        .in('customer_name', customerNames)
         .order('created_at', { ascending: false });
 
     if (sparepartError || customersError) {
@@ -201,7 +178,7 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     });
 
     const totalPages = Math.ceil((totalCount || 0) / limit);
-
+    console.log({mergedData})
     return {
         data: mergedData,
         pagination: {
@@ -222,21 +199,21 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
 ** ========================================== **
 export async function getAllMasterDataServices(){
     const { data: transactionData, error: transactionError } = await supabase
-        .schema('glory')
+        .schema(globalSchema)
         .from('services_transactions')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100); // Keep safety limit
 
     const { data: sparepartData, error: sparepartError } = await supabase
-        .schema('glory')
+        .schema(globalSchema)
         .from('services_spareparts')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1000); // Reasonable limit untuk spareparts
 
     const { data: customersData, error: customersError } = await supabase
-        .schema('glory')
+        .schema(globalSchema)
         .from('services_customers')
         .select('*')
         .order('created_at', { ascending: false })

@@ -94,15 +94,15 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Nama:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.customer_name}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.customer_id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Penerima:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.recipient}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.recipient_name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Cabang:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.service_location.toLocaleUpperCase()}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.location.toLocaleUpperCase()}</span>
               </div>
             </div>
           </div>
@@ -116,10 +116,10 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                 <span className="text-sm text-gray-600 dark:text-gray-400">Brand:</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">{row.phone_brand}</span>
               </div>
-              {row.imei && (
+              {row.phone_imei && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">IMEI:</span>
-                  <span className="text-sm font-mono text-gray-900 dark:text-white">{row.imei}</span>
+                  <span className="text-sm font-mono text-gray-900 dark:text-white">{row.phone_imei}</span>
                 </div>
               )}
             </div>
@@ -160,7 +160,7 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Harga Final:</span>
                 <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                  Rp {row.final_price.toLocaleString('id-ID')}
+                  Rp {row.final_price ? row.final_price.toLocaleString('id-ID'): 0}
                 </span>
               </div>
               {row.technician_fee && (
@@ -191,11 +191,11 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                   })}
                 </span>
               </div>
-              {row.pickup_datetime && (
+              {row.pickuped_datetime && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Diambil:</span>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {new Date(row.pickup_datetime).toLocaleDateString('id-ID', {
+                    {new Date(row.pickuped_datetime).toLocaleDateString('id-ID', {
                       day: '2-digit',
                       month: 'short',
                       year: 'numeric',
@@ -209,34 +209,40 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
           </div>
 
           {/* Spareparts */}
-          {row.spareparts.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+          {
+            row.spareparts && (
+              <>
+              {row.spareparts.length > 0 && (
+                <div>
+                <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
                 <Package size={16} /> Sparepart Digunakan
-              </h4>
-              <div className="space-y-2">
+                </h4>
+                <div className="space-y-2">
                 {row.spareparts.map((part) => (
                   <div
                     key={part.id}
                     className={`p-3 rounded-lg border ${
                       isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-white border-gray-200'
-                    }`}
-                  >
+                      }`}
+                      >
                     <div className="flex justify-between items-start mb-1">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{part.used_part}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{part.sparepart_name}</span>
                       <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                        Rp {part.part_price.toLocaleString('id-ID')}
+                        Rp {part.sparepart_price.toLocaleString('id-ID')}
                       </span>
                     </div>
                     <div className="flex gap-3 text-xs text-gray-600 dark:text-gray-400">
-                      {part.part_warranty && <span>Garansi: {part.part_warranty}</span>}
-                      {part.part_color_varian && <span>Warna: {part.part_color_varian}</span>}
+                      {part.sparepart_warranty && <span>Garansi: {part.sparepart_warranty}</span>}
+                      {part.sparepert_variant && <span>Warna: {part.sparepert_variant}</span>}
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
+                </div>
+                </div>
+              )}
+            </>
+            )
+          }
         </div>
       </div>
     </motion.div>
@@ -412,7 +418,7 @@ const ServiceTransactionsTable = () => {
         ),
         cell: ({ getValue }) => (
           <span className="font-bold text-gray-900 dark:text-white">
-            Rp {(getValue() as number).toLocaleString('id-ID')}
+            Rp {(getValue() as number) ? (getValue() as number).toLocaleString('id-ID') : 0}
           </span>
         ),
       },
