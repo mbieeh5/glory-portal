@@ -19,96 +19,8 @@ import {
   Package,
   Ban
 } from 'lucide-react';
-
-interface Sparepart {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface ServiceTransaction {
-  id: number;
-  invoice_id: string;
-  customer_name: string;
-  recipient: string;
-  entry_datetime: string;
-  complaint: string;
-  technician: string;
-  phone_brand: string;
-  imei: string | null;
-  initial_price: number;
-  final_price: number;
-  service_location: string;
-  status: 'in_process' | 'success' | 'canceled';
-  pickup_datetime: string | null;
-  spareparts?: Sparepart[];
-}
-
-// Dummy Data
-const dummyTransactions: ServiceTransaction[] = [
-  {
-    id: 1,
-    invoice_id: "GL0000ABC",
-    customer_name: "Budi Santoso",
-    recipient: "Budi Santoso",
-    entry_datetime: "2026-01-15T10:30:00",
-    complaint: "LCD pecah, touchscreen tidak responsif, baterai cepat habis",
-    technician: "Agus Technician",
-    phone_brand: "Samsung Galaxy S23",
-    imei: "351234567890123",
-    initial_price: 1500000,
-    final_price: 1350000,
-    service_location: "Sukahati",
-    status: "in_process",
-    pickup_datetime: "2026-01-20T14:00:00",
-    spareparts: [
-      { id: 1, name: "LCD Original", price: 800000, quantity: 1 },
-      { id: 2, name: "Baterai Original", price: 350000, quantity: 1 },
-      { id: 3, name: "Screen Protector", price: 50000, quantity: 1 }
-    ]
-  },
-  {
-    id: 2,
-    invoice_id: "GL0000ABD",
-    customer_name: "Siti Nurhaliza",
-    recipient: "Ahmad (Suami)",
-    entry_datetime: "2026-01-16T09:15:00",
-    complaint: "Tidak bisa charge, port charging kendor",
-    technician: "Rizki Technician",
-    phone_brand: "iPhone 14 Pro",
-    imei: "359876543210987",
-    initial_price: 800000,
-    final_price: 750000,
-    service_location: "Cikaret",
-    status: "success",
-    pickup_datetime: "2026-01-18T16:30:00",
-    spareparts: [
-      { id: 4, name: "Flexible Charging", price: 450000, quantity: 1 },
-      { id: 5, name: "Lem B7000", price: 25000, quantity: 1 }
-    ]
-  },
-  {
-    id: 3,
-    invoice_id: "GL0000ABE",
-    customer_name: "Dedi Kurniawan",
-    recipient: "Dedi Kurniawan",
-    entry_datetime: "2026-01-16T11:45:00",
-    complaint: "Sinyal hilang timbul, WiFi tidak connect, Bluetooth error",
-    technician: "Agus Technician",
-    phone_brand: "Xiaomi Redmi Note 12 Pro",
-    imei: null,
-    initial_price: 600000,
-    final_price: 600000,
-    service_location: "Sukahati",
-    status: "canceled",
-    pickup_datetime: "2026-01-18T16:30:00",
-    spareparts: [
-      { id: 6, name: "IC RF", price: 350000, quantity: 1 },
-      { id: 7, name: "Antena WiFi", price: 150000, quantity: 1 }
-    ]
-  }
-];
+import { ServiceTransaction } from '@/config/type';
+import CheckDataSatuanService from '@/lib/services/checkDataSatuan.services';
 
 export default function CheckDashboardPage() {
   const [invoiceId, setInvoiceId] = useState('');
@@ -120,21 +32,17 @@ export default function CheckDashboardPage() {
     e.preventDefault();
     setIsSearching(true);
     setNotFound(false);
-    setSearchResult(null);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const result = dummyTransactions.find(
-      t => t.invoice_id.toLowerCase() === invoiceId.toLowerCase()
-    );
-
-    if (result) {
-      setSearchResult(result);
-    } else {
+    if(!invoiceId.trim()){
+      setIsSearching(false);
       setNotFound(true);
+      return
     }
+    const SingleData = await CheckDataSatuanService(invoiceId)
 
+    if(SingleData){
+      setSearchResult(SingleData);
+    }
+    
     setIsSearching(false);
   };
 
@@ -154,12 +62,8 @@ export default function CheckDashboardPage() {
     }).format(new Date(datetime));
   };
 
-  const totalSpareparts = searchResult?.spareparts?.reduce(
-    (total, sp) => total + (sp.price * sp.quantity), 0
-  ) || 0;
-
   // Status Badge Component
-  const getStatusBadge = (status: 'in_process' | 'success' | 'canceled') => {
+  const getStatusBadge = (status: 'in_process' | 'completed' | 'canceled' | 'picked_up') => {
     const statusConfig = {
       in_process: {
         bg: 'bg-yellow-100 dark:bg-yellow-900/30',
@@ -168,7 +72,7 @@ export default function CheckDashboardPage() {
         icon: <Clock className="w-5 h-5 text-yellow-700 dark:text-yellow-400" />,
         label: 'In Process'
       },
-      success: {
+      completed: {
         bg: 'bg-green-100 dark:bg-green-900/30',
         border: 'border-green-300 dark:border-green-700',
         text: 'text-green-900 dark:text-green-300',
@@ -181,6 +85,13 @@ export default function CheckDashboardPage() {
         text: 'text-red-900 dark:text-red-300',
         icon: <Ban className="w-5 h-5 text-red-700 dark:text-red-400" />,
         label: 'Canceled'
+      },
+      picked_up: {
+        bg: 'bg-blue-100 dark:bg-blue-900/30',
+        border: 'border-blue-300 dark:border-blue-700',
+        text: 'text-blue-900 dark:text-blue-300',
+        icon: <Package className="w-5 h-5 text-blue-700 dark:text-blue-400" />,
+        label: 'Picked Up'
       }
     };
 
@@ -265,23 +176,6 @@ export default function CheckDashboardPage() {
                 </motion.button>
               </div>
             </div>
-
-            {/* Quick Search Buttons */}
-            <div className="flex flex-wrap gap-2 pt-2">
-              <span className="text-sm text-slate-600 dark:text-slate-400 self-center">
-                Coba:
-              </span>
-              {dummyTransactions.map((tx) => (
-                <button
-                  key={tx.invoice_id}
-                  type="button"
-                  onClick={() => setInvoiceId(tx.invoice_id)}
-                  className="px-3 py-1 text-xs font-mono bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-md hover:bg-orange-100 dark:hover:bg-orange-900/30 hover:text-orange-700 dark:hover:text-orange-400 transition-all"
-                >
-                  {tx.invoice_id}
-                </button>
-              ))}
-            </div>
           </form>
         </motion.div>
 
@@ -329,7 +223,7 @@ export default function CheckDashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-2xl font-bold text-white mb-1">
-                        {searchResult.customer_name}
+                        {searchResult.customer_id}
                       </h2>
                       <p className="text-orange-100">
                         Invoice: <span className="font-mono font-semibold">{searchResult.invoice_id}</span>
@@ -345,7 +239,7 @@ export default function CheckDashboardPage() {
                     <InfoItem
                       icon={<User className="w-5 h-5" />}
                       label="Penerima"
-                      value={searchResult.recipient}
+                      value={searchResult.recipient_name}
                     />
                     <InfoItem
                       icon={<Phone className="w-5 h-5" />}
@@ -355,13 +249,13 @@ export default function CheckDashboardPage() {
                     <InfoItem
                       icon={<Smartphone className="w-5 h-5" />}
                       label="IMEI"
-                      value={searchResult.imei || '-'}
+                      value={searchResult.phone_imei || '-'}
                       mono
                     />
                     <InfoItem
                       icon={<MapPin className="w-5 h-5" />}
                       label="Lokasi Service"
-                      value={searchResult.service_location}
+                      value={searchResult.location}
                     />
                     <InfoItem
                       icon={<User className="w-5 h-5" />}
@@ -407,25 +301,17 @@ export default function CheckDashboardPage() {
                           >
                             <div>
                               <p className="font-medium text-slate-900 dark:text-white">
-                                {sp.name}
+                                {sp.sparepart_name}
                               </p>
                               <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Quantity: {sp.quantity}
+                                {sp.sparepert_variant}
                               </p>
                             </div>
                             <p className="font-semibold text-orange-600 dark:text-orange-400">
-                              {formatCurrency(sp.price * sp.quantity)}
+                              {sp.sparepart_warranty ? `Garansi: ${sp.sparepart_warranty}` : 'No Warranty'}
                             </p>
                           </div>
                         ))}
-                        <div className="flex items-center justify-between p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-700">
-                          <p className="font-semibold text-slate-900 dark:text-white">
-                            Total Spareparts
-                          </p>
-                          <p className="font-bold text-lg text-orange-600 dark:text-orange-400">
-                            {formatCurrency(totalSpareparts)}
-                          </p>
-                        </div>
                       </div>
                     </div>
                   )}
@@ -473,12 +359,12 @@ export default function CheckDashboardPage() {
                           Waktu Pengambilan
                         </h3>
                         <p className="text-blue-700 dark:text-blue-400">
-                          {searchResult.pickup_datetime ? (
-                            formatDateTime(searchResult.pickup_datetime)
+                          {searchResult.pickuped_datetime ? (
+                            formatDateTime(searchResult.pickuped_datetime)
                           ) : (
                             <span className="flex items-center gap-2">
                               <AlertCircle className="w-4 h-4" />
-                              Belum ditentukan
+                              {searchResult.pickuped_datetime || searchResult.status === 'completed' ? 'sudah diambil' : searchResult.status === "in_process" ? "Dalam Pengerjaan" : "belum diambil" }
                             </span>
                           )}
                         </p>
