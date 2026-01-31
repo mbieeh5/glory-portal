@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { 
-  Wrench, 
-  Landmark, 
   ShieldAlert,
-  Construction,
   Terminal,
   ChevronRight,
   Settings,
@@ -13,10 +10,12 @@ import {
 } from "lucide-react";
 import { LogoutButton } from "@/components/logout-button";
 import { Button } from "@/components/ui/button";
+import { ModuleMenus } from "@/config/modules"
 
 import { redirect } from "next/navigation";
 import { JwtPayload } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+
 
 async function UserDetails() {
   const supabase = await createClient();
@@ -45,69 +44,8 @@ export default async function PortalDashboard() {
     }; 
   
     const userInfo = await UserDetails();
+    const userRole = (userInfo as JwtPayload).app_metadata?.role || 'user';
     const greeting = getGreeting((userInfo as JwtPayload).app_metadata?.role) || 'user'
-  
-
-  const modules = [
-    {
-      id: "service",
-      title: "GLORY SERVICE",
-      subtitle: "Input & Manage Service Orders",
-      desc: "Manajemen data servis, update status perbaikan, dan cetak nota fisik.",
-      href: "/fl/dashboard/service",
-      icon: Wrench,
-      accent: "hover:border-orange-500/50 hover:shadow-orange-500/20",
-      textAccent: "group-hover:text-orange-400",
-      bgGradient: "from-orange-500/5 via-orange-500/10 to-transparent",
-      iconBg: "bg-orange-500/10 border-orange-500/30",
-      iconColor: "text-orange-400",
-      stat: `ONLINE`
-    },
-    {
-      id: "bank",
-      title: "GLORY BANK",
-      subtitle: "Transfer Antar Bank",
-      desc: "Input data transfer dan cetak struk.",
-      href: "/fl/dashboard/bank",
-      icon: Landmark,
-      accent: "hover:border-cyan-500/50 hover:shadow-cyan-500/20",
-      textAccent: "group-hover:text-cyan-400",
-      bgGradient: "from-cyan-500/5 via-cyan-500/10 to-transparent",
-      iconBg: "bg-cyan-500/10 border-cyan-500/30",
-      iconColor: "text-cyan-400",
-      stat: `ONLINE`
-    },
-    {
-      id: "treasury",
-      title: "GLORY REKAP",
-      subtitle: "Under Development",
-      desc: "Modul ini sedang dalam pengembangan sistem. Akses ditutup sementara oleh Engineering.",
-      href: "#",
-      icon: Construction,
-      accent: "border-yellow-900/30 border-dashed bg-yellow-900/5", 
-      textAccent: "text-yellow-600",
-      bgGradient: "from-transparent to-transparent",
-      iconBg: "bg-yellow-900/10 border-yellow-900/30",
-      iconColor: "text-yellow-600",
-      stat: "MAINTENANCE",
-      disabled: true
-    },
-    {
-      id: "secret",
-      title: "CAPTAIN ONLY",
-      subtitle: "Under Development",
-      desc: "Modul ini sedang dalam pengembangan sistem. Akses ditutup sementara oleh Engineering.",
-      href: "#",
-      icon: Construction,
-      accent: "border-yellow-900/30 border-dashed bg-yellow-900/5", 
-      textAccent: "text-yellow-600",
-      bgGradient: "from-transparent to-transparent",
-      iconBg: "bg-yellow-900/10 border-yellow-900/30",
-      iconColor: "text-yellow-600",
-      stat: "MAINTENANCE",
-      disabled: true
-    }
-  ];
 
   return (
     <main className="min-h-screen bg-black text-gray-200 font-sans selection:bg-gray-700 selection:text-white relative overflow-hidden">
@@ -203,18 +141,33 @@ export default async function PortalDashboard() {
 
           {/* Enhanced Module Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
-            {modules.map((mod, idx) => (
+            {ModuleMenus.map((mod, idx) => {
+                const isDisabled = () => {
+                  if (userRole === 'admin') return false;
+
+                  const permissions:{frontliner: string[];moderator: string[]; user: string[]} = {
+                    frontliner: ['bank', 'service'],
+                    moderator: ['treasury', 'bank', 'service'],
+                    user: []
+                  };
+
+                  const allowedMenus = permissions[userRole as keyof typeof permissions] || [];
+                  const isAllowed = allowedMenus.includes(mod.id);
+
+                  return !isAllowed;
+                };
+              return(
               <Link 
                 key={mod.id} 
-                href={mod.disabled ? '#' : mod.href}
-                className={`block h-full ${mod.disabled ? 'cursor-not-allowed' : ''}`}
-                aria-disabled={mod.disabled}
+                href={isDisabled() ? '#' : mod.href}
+                className={`block h-full ${isDisabled() ? 'cursor-not-allowed' : ''}`}
+                aria-disabled={isDisabled()}
               >
                 <div 
                   className={`
                     group relative h-full p-6 md:p-8 rounded-2xl border backdrop-blur-sm
                     transition-all duration-500 overflow-hidden
-                    ${mod.disabled 
+                    ${isDisabled()
                       ? 'bg-gray-950/30 border-yellow-900/30 border-dashed' 
                       : `bg-gray-950/50 border-gray-800 ${mod.accent} hover:scale-[1.02] hover:shadow-2xl`
                     }
@@ -224,7 +177,7 @@ export default async function PortalDashboard() {
                   }}
                 >
                   {/* Animated Background Gradient */}
-                  {!mod.disabled && (
+                  {!isDisabled() && (
                     <>
                       <div className={`absolute inset-0 bg-gradient-to-br ${mod.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
@@ -242,27 +195,27 @@ export default async function PortalDashboard() {
                       {/* Icon */}
                       <div className={`
                         relative p-4 rounded-xl border transition-all duration-300
-                        ${mod.disabled 
+                        ${isDisabled()
                           ? 'bg-yellow-900/10 border-yellow-900/30 text-yellow-700' 
                           : `${mod.iconBg} group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg`
                         }
                       `}>
-                        {!mod.disabled && (
+                        {!isDisabled() && (
                           <div className={`absolute inset-0 rounded-xl ${mod.iconBg} blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-500`} />
                         )}
-                        <mod.icon size={28} className={`relative ${mod.disabled ? 'text-yellow-700' : mod.iconColor}`} />
+                        <mod.icon size={28} className={`relative ${isDisabled() ? 'text-yellow-700' : mod.iconColor}`} />
                       </div>
 
                       {/* Status Badge */}
                       <div className={`
                         flex items-center gap-2 text-[10px] font-mono uppercase border px-3 py-1.5 rounded-full
                         transition-all duration-300
-                        ${mod.disabled 
+                        ${isDisabled()
                           ? 'border-yellow-900/30 bg-yellow-900/10 text-yellow-600' 
                           : 'border-gray-700 bg-black/40 text-gray-400 group-hover:border-gray-600 backdrop-blur-sm'
                         }
                       `}>
-                        {!mod.disabled && (
+                        {!isDisabled() && (
                           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
                         )}
                         {mod.stat}
@@ -273,7 +226,7 @@ export default async function PortalDashboard() {
                     <div className="mb-4">
                       <h3 className={`
                         text-2xl font-bold mb-2 tracking-tight transition-colors duration-300
-                        ${mod.disabled 
+                        ${isDisabled()
                           ? 'text-gray-600' 
                           : 'text-gray-100 group-hover:text-white'
                         }
@@ -282,7 +235,7 @@ export default async function PortalDashboard() {
                       </h3>
                       <p className={`
                         text-xs font-bold tracking-widest uppercase transition-colors duration-300
-                        ${mod.disabled 
+                        ${isDisabled() 
                           ? 'text-yellow-700/70' 
                           : `text-gray-500 ${mod.textAccent}`
                         }
@@ -299,19 +252,19 @@ export default async function PortalDashboard() {
                     {/* Action Footer */}
                     <div className={`
                       flex items-center justify-between pt-4 border-t transition-colors duration-300
-                      ${mod.disabled 
+                      ${isDisabled()
                         ? 'border-yellow-900/20' 
                         : 'border-gray-800 group-hover:border-gray-700'
                       }
                     `}>
                       <div className={`
                         flex items-center text-sm font-bold transition-all duration-300
-                        ${mod.disabled 
+                        ${isDisabled()
                           ? 'text-yellow-700' 
                           : 'text-gray-500 group-hover:text-white'
                         }
                       `}>
-                        {mod.disabled ? (
+                        {isDisabled() ? (
                           <>
                             <ShieldAlert size={16} className="mr-2" />
                             ACCESS DENIED
@@ -328,7 +281,7 @@ export default async function PortalDashboard() {
                   </div>
                 </div>
               </Link>
-            ))}
+            )})}
           </div>
         </main>
 

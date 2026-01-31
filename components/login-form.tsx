@@ -11,24 +11,23 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [turnstileKey, setTurnstileKey] = useState(0); // Key buat force re-render
   const router = useRouter();
-  // eslint-disable-next-line
-  const turnstileRef = React.useRef<any>(null);
 
   const handleCaptchaExpire = () => {
-    setCaptchaToken("");
-    if(turnstileRef.current){
-      turnstileRef.current.reset();
-    }
+    setCaptchaToken(null);
   }
 
+  const resetCaptcha = () => {
+    setCaptchaToken(null);
+    setTurnstileKey(prev => prev + 1); // Force re-render Turnstile
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
-
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: username,
@@ -38,10 +37,11 @@ export function LoginForm() {
         }
       });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/fl/dashboard");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
+      // Reset captcha setelah error
+      resetCaptcha();
     } finally {
       setIsLoading(false);
     }
@@ -95,10 +95,10 @@ export function LoginForm() {
           </div>
 
           <Turnstile
+            key={turnstileKey}
             sitekey={process.env.NEXT_PUBLIC_SITE_KEY_CAPTCHA!}
             onVerify={(token) => {
               setCaptchaToken(token);
-              turnstileRef.current = { reset: () => {} };
             }}
             onExpire={handleCaptchaExpire}
           />

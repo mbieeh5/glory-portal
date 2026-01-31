@@ -24,7 +24,7 @@ export default async function ServiceLayout({ children }: { children: ReactNode 
     <DashboardShell 
       title="Glory Service" 
       subtitle="Technical Division"
-      menuItems={menus} 
+      menuItems={menus}
       themeColor="orange"
       userRole={userRole}
     >

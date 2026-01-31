@@ -18,7 +18,7 @@ async function UserDetails() {
 export default async function BankLayout({ children }: { children: ReactNode }) {
 
   const userRole = await UserDetails().then((claims) => claims?.app_metadata?.role || 'null');
-  const menus = getMenus('service', userRole);
+  const menus = getMenus('bank', userRole);
 
   return (
     <DashboardShell 

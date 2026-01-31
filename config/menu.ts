@@ -6,23 +6,26 @@ export const serviceMenus = {
   frontliner: [
     { label: 'Dashboard', href: '/fl/dashboard/service', icon: "LayoutDashboard" }, // Dashboard Utama untuk user
     { label: 'Input Servis', href: '/fl/dashboard/service/input', icon: "Wrench" }, // Halaman Input Services
-    { label: 'Cek Status', href: '/fl/dashboard/service/check', icon: "Search" }, // Halaman Cek Status Service atau Tracking service
-],
-
-// Role: MODERATOR
-moderator: [
+    { label: 'Data Harian', href: '/fl/dashboard/service/daily', icon: "Calendar" }, // Halaman untuk melihat data service harian
+    { label: 'Update', href: '/fl/dashboard/service/update/', icon: "Search" }, // Halaman untuk mengUpdate data service
+    { label: 'Cek Data', href: '/fl/dashboard/service/check', icon: "Search" }, // Halaman Cek Status Service atau Tracking service
+  ],
+  
+  // Role: MODERATOR
+  moderator: [
     { label: 'Dashboard', href: '/fl/dashboard/service', icon: "LayoutDashboard" }, // Dashboard Utama untuk user
     { label: 'Data Harian', href: '/fl/dashboard/service/daily', icon: "Calendar" }, // Halaman untuk melihat data service harian
-    { label: 'Advanced Cek', href: '/fl/dashboard/service/check-adv', icon: "Search" }, // Halaman Cek Status lebih detail 
-],
-
-// Role: ADMIN
-admin: [
-    { label: 'Advanced Cek', href: '/fl/dashboard/service/check-adv', icon: "Search" }, // Lebih detail
-    { label: 'Cek Status', href: '/fl/dashboard/service/check', icon: "Search" }, // Halaman Cek Status Service atau Tracking service
+    { label: 'Update', href: '/fl/dashboard/service/update/', icon: "Search" }, // Halaman untuk mengUpdate data service
+    { label: 'Cek Data', href: '/fl/dashboard/service/check', icon: "Search" }, // Halaman Cek Status lebih detail 
+  ],
+  
+  // Role: ADMIN
+  admin: [
     { label: 'Dashboard', href: '/fl/dashboard/service', icon: "LayoutDashboard" }, // Dashboard Utama untuk user
+    { label: 'Cek Data', href: '/fl/dashboard/service/check', icon: "Search" }, // Halaman Cek Status Service atau Tracking service
     { label: 'Data Harian', href: '/fl/dashboard/service/daily', icon: "Calendar" }, // Table hari ini
     { label: 'Input Servis', href: '/fl/dashboard/service/input', icon: "Wrench" },  // Halaman Input Services
+    { label: 'Update', href: '/fl/dashboard/service/update/', icon: "Search" }, // Halaman untuk mengUpdate data service
     { label: 'Master Data', href: '/fl/dashboard/service/master', icon: "FileText" }, // Filter bulan, edit, cancel
     { label: 'Statistik Poin', href: '/fl/dashboard/service/statistik', icon: "Award" }, // Itung gaji crew
   ]
