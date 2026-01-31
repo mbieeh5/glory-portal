@@ -437,7 +437,7 @@ const ServiceTransactionsTable = () => {
         cell: ({ getValue }) => <StatusBadge status={getValue() as string} />,
       },
     ],
-    []
+    [router]
   );
 
   const table = useReactTable({

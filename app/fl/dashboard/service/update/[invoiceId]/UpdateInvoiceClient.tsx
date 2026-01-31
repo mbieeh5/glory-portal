@@ -13,10 +13,8 @@ import {
   DollarSign,
   Package,
   Clock,
-  Moon,
-  Sun
 } from 'lucide-react';
-import { ServiceTransaction } from '@/config/type';
+import { ServiceTransaction, SparepartItems } from '@/config/type';
 import { updateInvoice } from '@/lib/services/invoice-action.services';
 
 const TECHNICIANS = [
@@ -76,8 +74,8 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
       technician_fee: tech?.hasFee ? prev.technician_fee : null,
     }));
   };
-
-  const handleSparepartChange = (index: number, field: string, value: any) => {
+  
+  const handleSparepartChange = <K extends keyof SparepartItems>(index: number, field: K, value: SparepartItems[K]) => {
     const updatedSpareparts = [...(formData.spareparts || [])];
     updatedSpareparts[index] = {
       ...updatedSpareparts[index],
@@ -459,7 +457,7 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
 
                 {(!formData.spareparts || formData.spareparts.length === 0) && (
                   <div className="text-center py-8 text-gray-400 dark:text-gray-500 italic">
-                    Belum ada sparepart. Klik "Tambah" untuk menambahkan.
+                    Belum ada sparepart. Klik &quot;Tambah&quot; untuk menambahkan.
                   </div>
                 )}
               </div>

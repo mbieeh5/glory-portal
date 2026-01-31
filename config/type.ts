@@ -59,3 +59,5 @@ export interface PaginatedResponse {
         hasPrevPage: boolean;
     }
 }
+
+export type SparepartItems = NonNullable<ServiceTransaction['spareparts']>[number];

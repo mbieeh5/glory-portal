@@ -18,7 +18,6 @@ async function UserDetails() {
 export default async function ServiceLayout({ children }: { children: ReactNode }) {
 
   const userRole = await UserDetails().then((claims) => claims?.app_metadata?.role || 'null');
-  const userName = await UserDetails().then((claims) => claims?.email || 'null');
   const menus = getMenus('service', userRole);
 
   return (

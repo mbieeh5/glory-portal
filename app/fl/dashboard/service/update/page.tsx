@@ -25,7 +25,7 @@ export default function InvoiceSearchForm() {
       // Navigate ke dynamic route
       router.push(`update/${encodeURIComponent(invoiceId.trim())}`);
     } catch (err) {
-      setError('Terjadi kesalahan saat memproses permintaan');
+      setError(`Terjadi kesalahan saat memproses permintaan ${err}`);
       setIsLoading(false);
     }
   };
