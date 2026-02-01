@@ -1,32 +1,63 @@
-'use server';
-
+"use server"
 import { ServiceTransaction } from '@/config/type';
+import { createClient } from '../supabase/server';
 import { revalidatePath } from 'next/cache';
-import { createClient } from '../supabase/client';
 
 export async function getInvoiceData(invoiceId: string): Promise<ServiceTransaction | null> {
+    const supabase = await createClient();
+    const globalSchema = 'glory';
+    
     try {
-        const supabase = createClient();
-
-        const { data, error } = await supabase.schema('glory')
-        .from('services_transactions')
-        .select(`*, services_spareparts (*), services_customers (customer_name)`)
-        .eq('invoice_id', invoiceId)
-        .single();
+        // 1. Fetch transaction dulu
+        const { data: transaction, error: transactionError } = await supabase
+            .schema(globalSchema)
+            .from('services_transactions')
+            .select('*')
+            .eq('invoice_id', invoiceId)
+            .maybeSingle();
         
-        if(error) {
-            console.error('Error from getInvoiceData', error)
+        if (transactionError) {
+            console.error('Error fetching transaction:', transactionError);
             return null;
         }
-        if(!data){
-            console.log('No Data Found for invoice:', invoiceId)
+        
+        if (!transaction) {
+            console.log('No transaction found for invoice:', invoiceId);
             return null;
         }
 
-        return data as ServiceTransaction;
+        // 2. Fetch spareparts
+        const { data: spareparts, error: sparepartsError } = await supabase
+            .schema(globalSchema)
+            .from('services_spareparts')
+            .select('*')
+            .eq('invoice_id', invoiceId);
+        
+        if (sparepartsError) {
+            console.error('Error fetching spareparts:', sparepartsError);
+        }
+
+        // 3. Fetch customer
+        const { data: customer, error: customerError } = await supabase
+            .schema(globalSchema)
+            .from('services_customers')
+            .select('customer_name, customer_phone_number')
+            .eq('customer_name', transaction.customer_id) // atau sesuaikan field-nya
+            .maybeSingle();
+        
+        if (customerError) {
+            console.error('Error fetching customer:', customerError);
+        }
+
+        // 4. Merge data
+        return {
+            ...transaction,
+            services_spareparts: spareparts || [],
+            services_customers: customer || null
+        } as ServiceTransaction;
 
     } catch (error) {
-        console.error('Error fetching invoice:', error);
+        console.error('Error in getInvoiceData:', error);
         return null;
     }
 }

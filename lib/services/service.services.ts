@@ -178,7 +178,6 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     });
 
     const totalPages = Math.ceil((totalCount || 0) / limit);
-    console.log({mergedData})
     return {
         data: mergedData,
         pagination: {

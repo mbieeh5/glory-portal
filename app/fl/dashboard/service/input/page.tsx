@@ -89,7 +89,6 @@ export default function InputDashboardPage() {
         })
         .select('customer_id')
         .single();
-        console.log(custData)
       if (custError) throw custError;
 
       // LANGKAH 2: Simpan Transaksi pake customer_id dari Langkah 1

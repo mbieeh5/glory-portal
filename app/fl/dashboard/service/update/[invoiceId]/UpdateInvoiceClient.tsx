@@ -18,6 +18,7 @@ import { ServiceTransaction, SparepartItems } from '@/config/type';
 import { updateInvoice } from '@/lib/services/invoice-action.services';
 
 const TECHNICIANS = [
+  { value: '', label: 'Pilih Teknisi', hasFee: false },
   { value: 'ibnu', label: 'Ibnu', hasFee: true },
   { value: 'rraf', label: 'Rraf', hasFee: false },
   { value: 'Mr.X', label: 'Mr.X', hasFee: false },
