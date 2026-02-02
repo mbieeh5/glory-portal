@@ -280,3 +280,149 @@ CREATE POLICY "glory_services_customers_select_frontliner"
     (auth.jwt() -> 'app_metadata' ->> 'role') = 'frontliner' OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'moderator'
     AND ((auth.jwt() ->> 'tenant_id') IS NOT NULL AND tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
   );
+
+
+
+---------------------------------
+--====== NEW BANK SCHEMA ======--
+---------------------------------
+-- Enum Status
+DO $$ BEGIN
+    CREATE TYPE status_bank_enum AS ENUM ('completed', 'canceled', 'pending');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- 1. Table bank Config
+CREATE TABLE IF NOT EXISTS glory.bank_config (
+    id uuid PRIMARY KEY, 
+    tenant_id uuid default auth.uid(),
+    bank_name varchar(30) not null,
+    account_name varchar(100) not null,
+    account_number varchar(30) not null,
+    current_balance decimal(15, 2) default 0,
+    is_free boolean default false,
+    is_active boolean default true,
+    created_at timestamp with time zone default current_timestamp,
+    updated_at timestamp with time zone default current_timestamp
+);
+
+-- 2. Table Bank Customers
+CREATE TABLE IF NOT EXISTS glory.bank_customers (
+    customer_id bigserial primary key,
+    tenant_id uuid default auth.uid(),
+    customer_name varchar(100) not null,
+    customer_bank_account varchar(30) unique not null,
+    customer_bank_name varchar(30) not null,
+    updated_at timestamp with time zone default current_timestamp,
+    created_at timestamp with time zone DEFAULT current_timestamp
+);
+
+-- 3. Table Bank Transactions
+CREATE TABLE IF NOT EXISTS glory.bank_transactions (
+  id BIGSERIAL PRIMARY KEY,
+  owner_id uuid default auth.uid(),
+  transfer_id varchar(50) unique not null,
+  entry_datetime timestamp with time zone default current_timestamp,
+  customer_id int8 references glory.bank_customers(customer_id),
+  bank_id uuid references glory.bank_config(id),
+  type_transactions char(3) not null,
+  amount decimal(12, 2) not null,
+  admin_fee decimal(12, 2) null default 0,
+  balance_before decimal(15, 2),
+  balance_after decimal(15, 2), 
+  description varchar(50), 
+  status status_bank_enum not null default 'completed',
+  is_check boolean default false,
+  created_at timestamp with time zone DEFAULT current_timestamp,
+  updated_at timestamp with time zone DEFAULT current_timestamp
+);
+
+--- DKI Daerah Kekuasaan Index (Optimized) ---
+-- Tabel Transactions
+CREATE INDEX idx_bank_trans_cust_id ON glory.bank_transactions(customer_id);
+CREATE INDEX idx_bank_trans_transfer_id ON glory.bank_transactions(transfer_id);
+CREATE INDEX idx_bank_trans_owner_id ON glory.bank_transactions(owner_id);
+CREATE INDEX idx_bank_trans_is_check ON glory.bank_transactions(is_check);
+CREATE INDEX idx_bank_trans_bank_id ON glory.bank_transactions(bank_id);
+CREATE INDEX idx_bank_trans_status ON glory.bank_transactions(status);
+CREATE INDEX idx_bank_trans_entry_date ON glory.bank_transactions(entry_datetime);
+
+-- Tabel Customers & Config (Biar RLS kenceng)
+CREATE INDEX idx_bank_cust_tenant_id ON glory.bank_customers(tenant_id);
+CREATE INDEX idx_bank_config_tenant_id ON glory.bank_config(tenant_id);
+
+--- DKT Daerah Kekuasaan Trigger ---
+CREATE TRIGGER trg_update_bank_transactions BEFORE UPDATE ON glory.bank_transactions FOR EACH ROW EXECUTE FUNCTION glory.update_updated_at_column();
+CREATE TRIGGER trg_update_bank_customers BEFORE UPDATE ON glory.bank_customers FOR EACH ROW EXECUTE FUNCTION glory.update_updated_at_column();
+CREATE TRIGGER trg_update_bank_config BEFORE UPDATE ON glory.bank_config FOR EACH ROW EXECUTE FUNCTION glory.update_updated_at_column();
+
+--- TFS Trigger Function Special ---
+
+-- BEFORE INSERT TRIGGER ONLY!!!! --
+CREATE OR REPLACE FUNCTION glory.fn_process_bank_transaction()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_bank_asal_name varchar;
+    v_cust_bank_name varchar;
+    v_current_bal decimal(15,2);
+    v_is_free_bank boolean;
+    v_usage_count int;
+    v_admin_fee decimal(12,2) := 0;
+BEGIN
+    -- 1. Ambil info Bank Asal, Saldo, & Status Gratisnya dari Config
+    -- Pake FOR UPDATE biar gak bentrok kalo ada transaksi barengan (Race Condition)
+    SELECT bank_name, current_balance, is_free 
+    INTO v_bank_asal_name, v_current_bal, v_is_free_bank
+    FROM glory.bank_config WHERE id = NEW.bank_id FOR UPDATE;
+
+    -- 2. Ambil Nama Bank Tujuan dari Master Customer
+    SELECT customer_bank_name INTO v_cust_bank_name 
+    FROM glory.bank_customers WHERE customer_id = NEW.customer_id;
+
+    -- 3. LOGIC ITUNG ADMIN FEE
+    
+    -- A. Kalo Nama Bank Persis Sama (Ex: BCA ke BCA) -> FREE
+    IF v_bank_asal_name = v_cust_bank_name THEN
+        v_admin_fee := 0;
+
+    -- B. Kalo Beda Bank tapi Bank Asal punya fitur is_free (Danamon/Danamon_QR)
+    ELSIF v_is_free_bank = true THEN
+        -- Itung pemakaian bulan ini (Reset otomatis tiap tgl 1)
+        SELECT count(*) INTO v_usage_count 
+        FROM glory.bank_transactions 
+        WHERE bank_id = NEW.bank_id 
+          AND type_transactions = 'OUT'
+          AND status = 'completed'
+          AND entry_datetime >= date_trunc('month', current_timestamp);
+
+        -- Cek Jatah 100x (Biar countdown lu jalan)
+        IF v_usage_count < 100 THEN
+            v_admin_fee := 0;
+        ELSE
+            v_admin_fee := 2500; -- Jatah abis, kena tarif normal
+        END IF;
+
+    -- C. Beda Bank & Gak Ada Jatah Gratis (Ex: BRI ke BCA) -> 2500
+    ELSE
+        v_admin_fee := 2500;
+    END IF;
+
+    -- 4. ISI DATA KE ROW TRANSAKSI
+    NEW.admin_fee := v_admin_fee;
+    NEW.balance_before := v_current_bal;
+    
+    IF NEW.type_transactions = 'OUT' THEN
+        NEW.balance_after := v_current_bal - (NEW.amount + v_admin_fee);
+    ELSE
+        NEW.balance_after := v_current_bal + NEW.amount;
+    END IF;
+
+    -- 5. UPDATE SALDO BRANKAS (bank_config) SECARA OTOMATIS
+    UPDATE glory.bank_config 
+    SET current_balance = NEW.balance_after, updated_at = now()
+    WHERE id = NEW.bank_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
