@@ -29,6 +29,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Calendar,
+  FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -76,15 +78,15 @@ const StatusBadge = ({ status }: { status: string }) => {
 const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-
+  
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      className={`p-6 border-t ${isDark ? 'bg-black border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+      className={`p-4 md:p-6 border-t ${isDark ? 'bg-black border-gray-700' : 'bg-gray-50 border-gray-200'}`}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {/* Left Column */}
         <div className="space-y-4">
           <div>
@@ -163,11 +165,11 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                   Rp {row.final_price ? row.final_price.toLocaleString('id-ID'): 0}
                 </span>
               </div>
-              {row.technician_fee && (
+              {row.technicial_fee && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Fee Teknisi:</span>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    Rp {row.technician_fee.toLocaleString('id-ID')}
+                    Rp {row.technicial_fee.toLocaleString('id-ID')}
                   </span>
                 </div>
               )}
@@ -249,11 +251,117 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
   );
 };
 
+// --- MOBILE CARD VIEW ---
+const MobileCardView = ({ 
+  row, 
+  router, 
+  isDark 
+}: { 
+  row: ServiceTransaction; 
+  router: ReturnType<typeof useRouter>; 
+  isDark: boolean;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <motion.div
+      layout
+      className={`rounded-xl border-2 overflow-hidden mb-3 ${
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      }`}
+    >
+      {/* Card Header - Always Visible */}
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <button
+              onClick={() => router.push(`/fl/dashboard/service/update/${encodeURIComponent(row.invoice_id.trim())}`)}
+              className="font-mono font-bold text-orange-600 dark:text-orange-400 hover:underline text-sm mb-1 block"
+            >
+              {row.invoice_id}
+            </button>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{row.customers_info?.customer_name}</p>
+          </div>
+          <StatusBadge status={row.status} />
+        </div>
+
+        {/* Key Info Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <Calendar size={12} />
+              <span>Tanggal</span>
+            </div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {new Date(row.entry_datetime).toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <Phone size={12} />
+              <span>Brand</span>
+            </div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{row.phone_brand}</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <User size={12} />
+              <span>Penerima</span>
+            </div>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{row.recipient_name}</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <CreditCard size={12} />
+              <span>Total</span>
+            </div>
+            <p className="text-sm font-bold text-orange-600 dark:text-orange-400">
+              Rp {row.final_price ? row.final_price.toLocaleString('id-ID') : 0}
+            </p>
+          </div>
+        </div>
+
+        {/* Complaint Preview */}
+        <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
+            <FileText size={12} />
+            <span>Keluhan</span>
+          </div>
+          <p className="text-sm text-gray-900 dark:text-white line-clamp-2">{row.complaint}</p>
+        </div>
+
+        {/* Expand Button */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className={`w-full mt-3 py-2 rounded-lg border-2 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+            isDark
+              ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
+              : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+          }`}
+        >
+          {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          {isExpanded ? 'Sembunyikan Detail' : 'Lihat Detail'}
+        </button>
+      </div>
+
+      {/* Expanded Content */}
+      <AnimatePresence>
+        {isExpanded && <ExpandedRowContent row={row} />}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
 // --- MAIN COMPONENT ---
 const ServiceTransactionsTable = () => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const router = useRouter();
+  
   // Data & Pagination State dari Backend
   const [data, setData] = useState<ServiceTransaction[]>([]);
   const [pagination, setPagination] = useState({
@@ -283,7 +391,7 @@ const ServiceTransactionsTable = () => {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput);
-    }, 500); // 500ms delay
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [searchInput]);
@@ -312,7 +420,7 @@ const ServiceTransactionsTable = () => {
 
   // Re-fetch when filters change
   React.useEffect(() => {
-    fetchData(1); // Always reset to page 1 when filters change
+    fetchData(1);
   }, [fetchData]);
 
   // Columns
@@ -351,7 +459,7 @@ const ServiceTransactionsTable = () => {
           </button>
         ),
         cell: ({ getValue }) => (
-          <span className="text-sm">
+          <span className="text-sm whitespace-nowrap">
             {new Date(getValue() as string).toLocaleDateString('id-ID', {
               day: '2-digit',
               month: 'short',
@@ -382,7 +490,7 @@ const ServiceTransactionsTable = () => {
           return (
             <button
               onClick={() => router.push(`/fl/dashboard/service/update/${encodeURIComponent(invId.trim())}`)}
-              className="font-mono font-semibold text-orange-600 dark:text-orange-400 hover:underline hover:text-orange-700 transition-all text-left"
+              className="font-mono font-semibold text-orange-600 dark:text-orange-400 hover:underline hover:text-orange-700 transition-all text-left whitespace-nowrap"
             >
               {invId}
             </button>
@@ -401,7 +509,11 @@ const ServiceTransactionsTable = () => {
       {
         accessorKey: 'complaint',
         header: 'Keluhan',
-        cell: ({ getValue }) => <span className="text-sm text-gray-600 dark:text-gray-400">{getValue() as string}</span>,
+        cell: ({ getValue }) => (
+          <span className="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate block">
+            {getValue() as string}
+          </span>
+        ),
       },
       {
         accessorKey: 'technician',
@@ -425,7 +537,7 @@ const ServiceTransactionsTable = () => {
           </button>
         ),
         cell: ({ getValue }) => (
-          <span className="font-bold text-gray-900 dark:text-white">
+          <span className="font-bold text-gray-900 dark:text-white whitespace-nowrap">
             Rp {(getValue() as number) ? (getValue() as number).toLocaleString('id-ID') : 0}
           </span>
         ),
@@ -466,12 +578,10 @@ const ServiceTransactionsTable = () => {
     setExpanded({});
   }, []);
 
-  // Handler untuk pagination buttons
   const handlePageChange = (newPage: number) => {
     fetchData(newPage);
   };
 
-  // Client-side stats (dari data yang udah di-fetch)
   const stats = useMemo(() => ({
     completed: data.filter((d) => d.status === 'completed' && d.pickedup_at?.length ? d.pickedup_at?.length > 0 : false).length,
     inProcess: data.filter((d) => d.status === 'in_process').length,
@@ -490,12 +600,12 @@ const ServiceTransactionsTable = () => {
     >
       <div className="max-w-[1600px] mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 md:mb-8">
           <div>
-            <h1 className={`text-3xl md:text-4xl ${isDark ? 'text-white' : 'font-black text-gray-900'} mb-2`}>
+            <h1 className={`text-2xl md:text-3xl lg:text-4xl ${isDark ? 'text-white' : 'font-black text-gray-900'} mb-2`}>
               Service Transactions
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
               Kelola dan monitor semua transaksi servis
             </p>
           </div>
@@ -503,20 +613,20 @@ const ServiceTransactionsTable = () => {
 
         {/* Filters & Search */}
         <div
-          className={`p-6 rounded-2xl border-2 mb-6 ${
+          className={`p-4 md:p-6 rounded-2xl border-2 mb-4 md:mb-6 ${
             isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
           }`}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
             {/* Search */}
             <div className="lg:col-span-2 relative">
-              <Search className={`absolute left-4 top-1/2 -translate-y-1/2 text-gray-400`} size={20} />
+              <Search className={`absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400`} size={18} />
               <input
                 type="text"
-                placeholder="Cari invoice, customer, brand, IMEI, teknisi, sparepart..."
+                placeholder="Cari invoice, customer, brand..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 outline-none transition-all ${
+                className={`w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border-2 outline-none transition-all ${
                   isDark
                     ? 'bg-gray-900 border-gray-700 text-white focus:border-orange-500'
                     : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-orange-500'
@@ -528,7 +638,7 @@ const ServiceTransactionsTable = () => {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className={`px-4 py-3 rounded-xl border-2 outline-none transition-all ${
+              className={`px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border-2 outline-none transition-all ${
                 isDark
                   ? 'bg-gray-900 border-gray-700 text-white focus:border-orange-500'
                   : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-orange-500'
@@ -546,7 +656,7 @@ const ServiceTransactionsTable = () => {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className={`px-4 py-3 rounded-xl border-2 outline-none transition-all ${
+              className={`px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border-2 outline-none transition-all ${
                 isDark
                   ? 'bg-gray-900 border-gray-700 text-white focus:border-orange-500'
                   : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-orange-500'
@@ -563,7 +673,7 @@ const ServiceTransactionsTable = () => {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className={`px-4 py-3 rounded-xl border-2 outline-none transition-all ${
+              className={`px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-xl border-2 outline-none transition-all ${
                 isDark
                   ? 'bg-gray-900 border-gray-700 text-white focus:border-orange-500'
                   : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-orange-500'
@@ -579,51 +689,66 @@ const ServiceTransactionsTable = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3 mt-4">
+          <div className="flex flex-wrap gap-2 md:gap-3 mt-3 md:mt-4">
             <button
               onClick={handleReset}
               disabled={isLoading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg 
+              className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg 
                 ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}
-                transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
+                transition-colors text-xs md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> Reset Filter
+              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Reset Filter
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors text-sm font-medium">
-              <Download size={16} /> Export Data
+            <button className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white transition-colors text-xs md:text-sm font-medium">
+              <Download size={14} /> Export Data
             </button>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200 dark:border-gray-700">
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Database</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-400">{pagination.totalRecords}</p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-400">{pagination.totalRecords}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Selesai (halaman ini)</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Selesai</p>
+              <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
                 {stats.completed}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Dalam Proses</p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Proses</p>
+              <p className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {stats.inProcess}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Batal</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-600">
+              <p className="text-xl md:text-2xl font-bold text-red-600 dark:text-red-600">
                 {stats.canceled}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* MOBILE VIEW - Card Layout (Hidden on md and up) */}
+        <div className="block lg:hidden">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="animate-spin" size={32} />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {data.map((row) => (
+                <MobileCardView key={row.invoice_id} row={row} router={router} isDark={isDark} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* DESKTOP/TABLET VIEW - Table Layout (Hidden on mobile) */}
         <div
-          className={`rounded-2xl border-2 overflow-hidden relative ${
+          className={`hidden lg:block rounded-2xl border-2 overflow-hidden relative ${
             isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
           }`}
         >
@@ -641,7 +766,7 @@ const ServiceTransactionsTable = () => {
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
-                        className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+                        className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider"
                       >
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </th>
@@ -659,7 +784,7 @@ const ServiceTransactionsTable = () => {
                         }`}
                       >
                         {row.getVisibleCells().map((cell) => (
-                          <td key={cell.id} className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          <td key={cell.id} className="px-4 lg:px-6 py-3 lg:py-4 text-sm text-gray-900 dark:text-white">
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </td>
                         ))}
@@ -677,50 +802,50 @@ const ServiceTransactionsTable = () => {
               </tbody>
             </table>
           </div>
+        </div>
 
-          {/* Pagination */}
-          <div
-            className={`flex flex-col md:flex-row items-center justify-between gap-4 p-6 border-t ${
-              isDark ? 'border-gray-700' : 'border-gray-200'
-            }`}
-          >
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Halaman {pagination.currentPage} dari {pagination.totalPages} 
-              {' '}({pagination.totalRecords} total data)
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handlePageChange(1)}
-                disabled={!pagination.hasPrevPage || isLoading}
-                className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              >
-                {'<<'}
-              </button>
-              <button
-                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                disabled={!pagination.hasPrevPage || isLoading}
-                className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              >
-                {'<'}
-              </button>
-              <span className="px-4 py-2 text-sm font-medium">
-                Halaman {pagination.currentPage} dari {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                disabled={!pagination.hasNextPage || isLoading}
-                className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              >
-                {'>'}
-              </button>
-              <button
-                onClick={() => handlePageChange(pagination.totalPages)}
-                disabled={!pagination.hasNextPage || isLoading}
-                className="px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              >
-                {'>>'}
-              </button>
-            </div>
+        {/* Pagination - Responsive */}
+        <div
+          className={`flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 p-4 md:p-6 mt-4 md:mt-0 rounded-2xl border-2 lg:rounded-t-none ${
+            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          }`}
+        >
+          <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
+            Halaman {pagination.currentPage} dari {pagination.totalPages} 
+            {' '}({pagination.totalRecords} total data)
+          </div>
+          <div className="flex items-center gap-1 md:gap-2">
+            <button
+              onClick={() => handlePageChange(1)}
+              disabled={!pagination.hasPrevPage || isLoading}
+              className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {'<<'}
+            </button>
+            <button
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={!pagination.hasPrevPage || isLoading}
+              className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {'<'}
+            </button>
+            <span className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium">
+              {pagination.currentPage}/{pagination.totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={!pagination.hasNextPage || isLoading}
+              className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {'>'}
+            </button>
+            <button
+              onClick={() => handlePageChange(pagination.totalPages)}
+              disabled={!pagination.hasNextPage || isLoading}
+              className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            >
+              {'>>'}
+            </button>
           </div>
         </div>
       </div>

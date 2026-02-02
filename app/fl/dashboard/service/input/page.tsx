@@ -27,25 +27,43 @@ export default function InputDashboardPage() {
   });
 
   // 1. USE EFFECT PERTAMA: Buat ambil ID pas pertama kali load (GL-xxxx)
-  useEffect(() => {
-    const initData = async () => {
-        // Ambil ID default (lokasi null)
-        const defaultID = await GetNoNota(null);
-        
-        // Ambil Penerima (User Login)
-        const { data } = await createClient().auth?.getClaims();
-        const email = data?.claims.email || 'Admin';
-        const penerima = email.split('@')[0].toUpperCase();
+useEffect(() => {
+  const initData = async () => {
+    const supabase = createClient();
 
-        setFormData(prev => ({
-            ...prev,
-            invoice_id: defaultID,
-            recipient: penerima
-        }));
-    };
+    // 1. Ambil ID default nota
+    const defaultID = await GetNoNota(null);
 
-    initData();
-  }, []);
+    // 2. AMBIL USER ID dari session yang lagi login
+    const { data: { user } } = await supabase.auth.getUser();
+
+    let username = 'Admin';
+
+    if (user) {
+      // 3. Ambil full_name dari tabel profiles yang ID-nya cocok
+      const { data: profileData, error } = await supabase
+        .schema('glory')
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id) // Filter biar gak ketuker sama user lain!
+        .maybeSingle();
+
+      if (profileData?.full_name) {
+        username = profileData.full_name;
+      }
+      
+      if (error) console.error("Error ambil profil:", error);
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      invoice_id: defaultID,
+      recipient: username
+    }));
+  };
+
+  initData();
+}, []);
 
   // 2. HANDLER KHUSUS LOKASI: Biar pas ganti lokasi, ID ikut ganti
   const handleLocationChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
