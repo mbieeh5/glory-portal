@@ -1,3 +1,18 @@
+// GLOBAL AREA //
+export interface ActivityLog {
+  id: number, // key react
+  user: string | null,
+  action: string,
+  time: string,
+  rawTime: string
+}
+
+export interface UserProfile {
+  id: number,
+  full_name: string,
+  role: string,
+  point: number,
+}
 
 
 // --- SERVICES AREA ---
@@ -30,7 +45,7 @@ export interface ServiceTransaction {
   treatment: string | null;
   phisical_condition: string | null;
   technician: string;
-  technician_fee: number | null;
+  technicial_fee: number | null;
   phone_brand: string;
   phone_imei: string | null;
   initial_price: number;
@@ -87,8 +102,8 @@ export interface BankConfig {
   tenant_id?: string; // uuid, optional karena ada default
   bank_name: string;
   account_name: string;
-  account_number: string;
-  current_balance: number; // decimal(15, 2)
+  account_number?: string;
+  current_balance?: number; // decimal(15, 2)
   is_free?: boolean;
   is_active?: boolean;
   created_at?: Date;
@@ -111,6 +126,8 @@ export interface BankTransaction {
   id: number; // bigserial
   owner_id?: string; // uuid, optional karena ada default
   transfer_id: string;
+  transfer_info?: BankCustomer;
+  config_info?: BankConfig;
   entry_datetime: Date;
   customer_id: number | null; // bisa null karena references
   bank_id: string | null; // uuid, bisa null karena references

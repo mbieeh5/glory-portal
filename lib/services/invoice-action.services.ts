@@ -78,7 +78,7 @@ export async function updateInvoice(formData: FormData) {
             treatment: formData.get('treatment') as string || null,
             phisical_condition: formData.get('phisical_condition') as string || null,
             technician: formData.get('technician') as string,
-            technicial_fee: formData.get('technician_fee') ? Number(formData.get('technician_fee')) : null,
+            technicial_fee: formData.get('technicial_fee') ? Number(formData.get('technicial_fee')) : null,
             phone_brand: formData.get('phone_brand') as string,
             phone_imei: formData.get('phone_imei') as string || null,
             initial_price: Number(formData.get('initial_price')),

@@ -319,11 +319,11 @@ export default function CheckDashboardPage() {
                         label="Teknisi"
                         value={searchResult.technician}
                       />
-                      {searchResult.technician_fee !== null && (
+                      {searchResult.technicial_fee !== null && (
                         <InfoItem
                           icon={<DollarSign className="w-5 h-5" />}
                           label="Biaya Teknisi"
-                          value={formatCurrency(searchResult.technician_fee || 0)}
+                          value={formatCurrency(searchResult.technicial_fee || 0)}
                         />
                       )}
                     </div>

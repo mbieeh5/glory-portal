@@ -34,6 +34,5 @@ export default async function CheckDataSatuanService(inv_id: string) {
         customers_info: customersInfo || null
     }
 
-    console.log({mergedData})
     return mergedData
 }

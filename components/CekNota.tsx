@@ -34,7 +34,6 @@ const NotaResultCard = ({ data }: { data: NotaData }) => {
   // Tentukan warna berdasarkan status
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'picked_up': return 'bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400';
       case 'in_process': return 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400';
       case 'canceled': return 'bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400';
       case 'completed': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 dark:text-yellow-400';
@@ -304,7 +303,7 @@ const CekNota = () => {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
                   <input
                     type="text"
-                    placeholder="GL..."
+                    placeholder="GPS-..."
                     value={nomorNota}
                     onChange={(e) => setNomorNota(e.target.value.toUpperCase())}
                     className="w-full p-4 pl-12 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white font-mono text-lg placeholder-gray-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all uppercase"

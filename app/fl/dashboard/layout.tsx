@@ -1,13 +1,16 @@
+import LoadingScreen from "@/components/LoadingScreen";
 import { Suspense } from "react";
-
+ 
 export default async function DashboardFlLayout({children}: {children: React.ReactNode}) {
-  
+
+
+
   return (
-    <Suspense>
+    // Fallback item bisa loading spinner atau skeleton
+    <Suspense fallback={<LoadingScreen />}>
       <AuthGate>{children}</AuthGate>
     </Suspense>
-
-);
+  );
 }
 
 async function AuthGate({children}: {children: React.ReactNode}) {

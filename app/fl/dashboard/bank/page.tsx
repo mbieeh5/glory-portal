@@ -136,7 +136,7 @@ export default function BankDashboardPage() {
                         </button>
                       </div>
                       <p className="text-lg font-mono tracking-wider text-slate-900 dark:text-slate-100">
-                        {visibleAccounts[bank.id] ? bank.account_number : maskAccountNumber(bank.account_number)}
+                        {visibleAccounts[bank.id] ? bank.account_number : maskAccountNumber(bank.account_number || "XXXXXXXX")}
                       </p>
                     </div>
 
@@ -149,7 +149,7 @@ export default function BankDashboardPage() {
                       </div>
                       <div className="flex items-baseline gap-2">
                         <p className="text-3xl font-light text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400">
-                          {formatCurrency(bank.current_balance)}
+                          {formatCurrency(bank.current_balance || 0)}
                         </p>
                       </div>
                     </div>
