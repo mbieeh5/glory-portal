@@ -64,3 +64,99 @@ export interface PaginatedResponse {
 }
 
 export type SparepartItems = NonNullable<ServiceTransaction['spareparts']>[number];
+
+
+
+// BANKIR AREA //
+
+// Enums
+export enum StatusBankEnum {
+  COMPLETED = 'completed',
+  PENDING = 'pending',
+  FAILED = 'failed'
+}
+
+export enum TransactionType {
+  IN = 'IN',  // Transfer masuk
+  OUT = 'OUT' // Transfer keluar
+}
+
+// Interface untuk Bank Config
+export interface BankConfig {
+  id: string; // uuid
+  tenant_id?: string; // uuid, optional karena ada default
+  bank_name: string;
+  account_name: string;
+  account_number: string;
+  current_balance: number; // decimal(15, 2)
+  is_free?: boolean;
+  is_active?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+// Interface untuk Bank Customers
+export interface BankCustomer {
+  customer_id: number; // bigserial
+  tenant_id?: string; // uuid, optional karena ada default
+  customer_name: string;
+  customer_bank_account: string;
+  customer_bank_name: string;
+  updated_at: Date;
+  created_at: Date;
+}
+
+// Interface untuk Bank Transactions
+export interface BankTransaction {
+  id: number; // bigserial
+  owner_id?: string; // uuid, optional karena ada default
+  transfer_id: string;
+  entry_datetime: Date;
+  customer_id: number | null; // bisa null karena references
+  bank_id: string | null; // uuid, bisa null karena references
+  type_transactions: string; // char(3) - bisa pake TransactionType enum
+  amount: number; // decimal(12, 2)
+  admin_fee: number; // decimal(12, 2)
+  balance_before: number | null; // decimal(15, 2)
+  balance_after: number | null; // decimal(15, 2)
+  description: string | null;
+  status: StatusBankEnum;
+  is_check: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Interface untuk Insert/Create (tanpa auto-generated fields)
+export interface BankConfigInsert {
+  id: string;
+  tenant_id?: string;
+  bank_name: string;
+  account_name: string;
+  account_number: string;
+  current_balance?: number;
+  is_free?: boolean;
+  is_active?: boolean;
+}
+
+export interface BankCustomerInsert {
+  tenant_id?: string;
+  customer_name: string;
+  customer_bank_account: string;
+  customer_bank_name: string;
+}
+
+export interface BankTransactionInsert {
+  owner_id?: string;
+  transfer_id: string;
+  entry_datetime?: Date;
+  customer_id?: number;
+  bank_id?: string;
+  type_transactions: string;
+  amount: number;
+  admin_fee?: number;
+  balance_before?: number;
+  balance_after?: number;
+  description?: string;
+  status?: StatusBankEnum;
+  is_check?: boolean;
+}
