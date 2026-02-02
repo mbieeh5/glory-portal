@@ -23,7 +23,6 @@ export const serviceMenus = {
   admin: [
     { label: 'Dashboard', href: '/fl/dashboard/service', icon: "LayoutDashboard" }, // Dashboard Utama untuk user
     { label: 'Cek Data', href: '/fl/dashboard/service/check', icon: "Search" }, // Halaman Cek Status Service atau Tracking service
-    { label: 'Data Harian', href: '/fl/dashboard/service/daily', icon: "Calendar" }, // Table hari ini
     { label: 'Input Servis', href: '/fl/dashboard/service/input', icon: "Wrench" },  // Halaman Input Services
     { label: 'Update', href: '/fl/dashboard/service/update/', icon: "Search" }, // Halaman untuk mengUpdate data service
     { label: 'Master Data', href: '/fl/dashboard/service/master', icon: "FileText" }, // Filter bulan, edit, cancel

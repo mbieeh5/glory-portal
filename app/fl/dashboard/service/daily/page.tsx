@@ -29,7 +29,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -46,7 +45,7 @@ const StatusBadge = ({ status }: { status: string }) => {
       className: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
     },
     picked_up: {
-      label: 'selesai',
+      label: 'Sudah DiAmbil',
       icon: CheckCircle2,
       className: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
     },
@@ -56,9 +55,9 @@ const StatusBadge = ({ status }: { status: string }) => {
       className: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800',
     },
     completed: {
-      label: 'Menunggu Sparepart',
-      icon: AlertCircle,
-      className: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800',
+      label: 'selesai',
+      icon: CheckCircle2,
+      className: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
     },
   };
 
@@ -192,11 +191,11 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                   })}
                 </span>
               </div>
-              {row.pickuped_datetime && (
+              {row.pickedup_at && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Diambil:</span>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {new Date(row.pickuped_datetime).toLocaleDateString('id-ID', {
+                    {new Date(row.pickedup_at).toLocaleDateString('id-ID', {
                       day: '2-digit',
                       month: 'short',
                       year: 'numeric',
@@ -234,7 +233,7 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                     </div>
                     <div className="flex gap-3 text-xs text-gray-600 dark:text-gray-400">
                       {part.sparepart_warranty && <span>Garansi: {part.sparepart_warranty}</span>}
-                      {part.sparepert_variant && <span>Warna: {part.sparepert_variant}</span>}
+                      {part.sparepart_variant && <span>Warna: {part.sparepart_variant}</span>}
                     </div>
                   </div>
                 ))}
@@ -474,11 +473,11 @@ const ServiceTransactionsTable = () => {
 
   // Client-side stats (dari data yang udah di-fetch)
   const stats = useMemo(() => ({
-    completed: data.filter((d) => d.status === 'completed' && d.pickuped_datetime?.length ? d.pickuped_datetime?.length > 0 : false).length,
+    completed: data.filter((d) => d.status === 'completed' && d.pickedup_at?.length ? d.pickedup_at?.length > 0 : false).length,
     inProcess: data.filter((d) => d.status === 'in_process').length,
-    canceled: data.filter((d) => d.status === 'canceled' && d.pickuped_datetime?.length ? d.pickuped_datetime?.length > 0 : false).length,
-    completed_not_pick: data.filter((d) => d.status === 'completed' && d.pickuped_datetime === null).length,
-    canceled_not_pick: data.filter((d) => d.status === 'canceled' && d.pickuped_datetime === null).length,
+    canceled: data.filter((d) => d.status === 'canceled' && d.pickedup_at?.length ? d.pickedup_at?.length > 0 : false).length,
+    completed_not_pick: data.filter((d) => d.status === 'completed' && d.pickedup_at === null).length,
+    canceled_not_pick: data.filter((d) => d.status === 'canceled' && d.pickedup_at === null).length,
   }), [data]);
 
   return (

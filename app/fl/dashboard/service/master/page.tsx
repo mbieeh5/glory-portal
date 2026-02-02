@@ -191,11 +191,11 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                   })}
                 </span>
               </div>
-              {row.pickuped_datetime && (
+              {row.pickedup_at && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Diambil:</span>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {new Date(row.pickuped_datetime).toLocaleDateString('id-ID', {
+                    {new Date(row.pickedup_at).toLocaleDateString('id-ID', {
                       day: '2-digit',
                       month: 'short',
                       year: 'numeric',
@@ -233,7 +233,7 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                     </div>
                     <div className="flex gap-3 text-xs text-gray-600 dark:text-gray-400">
                       {part.sparepart_warranty && <span>Garansi: {part.sparepart_warranty}</span>}
-                      {part.sparepert_variant && <span>Warna: {part.sparepert_variant}</span>}
+                      {part.sparepart_variant && <span>Warna: {part.sparepart_variant}</span>}
                     </div>
                   </div>
                 ))}
@@ -465,7 +465,7 @@ const ServiceTransactionsTable = () => {
 
   // Client-side stats (dari data yang udah di-fetch)
   const stats = useMemo(() => ({
-    completed: data.filter((d) => d.status === 'picked_up').length,
+    completed: data.filter((d) => d.status === 'completed').length,
     inProcess: data.filter((d) => d.status === 'in_process').length,
     canceled: data.filter((d) => d.status === 'canceled').length,
   }), [data]);
