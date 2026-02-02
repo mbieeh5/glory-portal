@@ -119,9 +119,7 @@ export default function TransferFormPage() {
       location,
       timestamp: new Date().toISOString()
     };
-
-    console.log("Transfer Data:", transferData);
-
+    
     // Simulate API call
     setTimeout(() => {
       alert("Transfer berhasil dibuat!");

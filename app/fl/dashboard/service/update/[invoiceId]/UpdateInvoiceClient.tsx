@@ -87,7 +87,7 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
     setFormData(prev => ({
       ...prev,
       technician: techValue,
-      technician_fee: tech?.hasFee ? prev.technician_fee : null,
+      technicial_fee: tech?.hasFee ? prev.technicial_fee : null,
     }));
   };
   
@@ -386,8 +386,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     </label>
                     <input
                       type="number"
-                      name="technician_fee"
-                      value={formData.technician_fee || 0}
+                      name="technicial_fee"
+                      value={formData.technicial_fee || 0}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
                       required
