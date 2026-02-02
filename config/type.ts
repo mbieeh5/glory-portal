@@ -1,3 +1,5 @@
+
+
 // --- SERVICES AREA ---
 export interface Sparepart {
   id: number;
@@ -5,22 +7,23 @@ export interface Sparepart {
   sparepart_name: string;
   sparepart_price: number;
   sparepart_warranty: string | null;
-  sparepert_variant: string | null;
+  sparepart_variant: string | null;
 }
 
 export interface ServicesCustomer {
-  id: number;
+  id?: number;
   customer_id: string;
   customer_name: string; 
   customer_phone_number: string;
-  total_service: number;
-  latest_service_date: string;
+  total_service?: number;
+  latest_service_date?: string;
 }
 
 export interface ServiceTransaction {
   id: number;
   invoice_id: string;
   customer_id: string;
+  customers_info?: ServicesCustomer | null;
   recipient_name: string;
   entry_datetime: string;
   complaint: string;
@@ -33,8 +36,8 @@ export interface ServiceTransaction {
   initial_price: number;
   final_price: number;
   location: string;
-  status: 'in_process' | 'completed' | 'canceled' | 'picked_up';
-  pickuped_datetime: string | null;
+  status: 'in_process' | 'completed' | 'canceled';
+  pickedup_at: string | null;
   spareparts?: Sparepart[];
 }
 

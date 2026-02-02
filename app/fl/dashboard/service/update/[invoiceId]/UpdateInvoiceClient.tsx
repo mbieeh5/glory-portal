@@ -14,10 +14,11 @@ import {
   Package,
   Clock,
 } from 'lucide-react';
-import { ServiceTransaction, SparepartItems } from '@/config/type';
+import { ServicesCustomer, ServiceTransaction, SparepartItems } from '@/config/type';
 import { updateInvoice } from '@/lib/services/invoice-action.services';
 
 const TECHNICIANS = [
+  { value: '', label: 'Pilih Teknisi', hasFee: false },
   { value: 'ibnu', label: 'Ibnu', hasFee: true },
   { value: 'rraf', label: 'Rraf', hasFee: false },
   { value: 'Mr.X', label: 'Mr.X', hasFee: false },
@@ -39,7 +40,6 @@ const STATUSES = [
   { value: 'in_process', label: 'Dalam Proses' },
   { value: 'completed', label: 'Selesai' },
   { value: 'canceled', label: 'Dibatalkan' },
-  { value: 'picked_up', label: 'Sudah Diambil' },
 ];
 
 interface Props {
@@ -64,6 +64,22 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleCustomersInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      customers_info: {
+        ...(prev.customers_info || {}),
+        [name] : value,
+      } as ServicesCustomer
+    }))
+  }
+
+  const formatDateTimeLocal = (isoString:string | null) => {
+    if(!isoString) return '';
+    return new Date(isoString).toISOString().slice(0,16);
+  }
+ 
   const handleTechnicianChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const techValue = e.target.value;
     const tech = TECHNICIANS.find(t => t.value === techValue);
@@ -91,7 +107,7 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
       sparepart_name: '',
       sparepart_price: 0,
       sparepart_warranty: null,
-      sparepert_variant: null,
+      sparepart_variant: null,
     };
     setFormData(prev => ({
       ...prev,
@@ -106,25 +122,28 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setError('');
+  setSuccess('');
 
-    const formDataObj = new FormData(e.currentTarget);
-    formDataObj.append('spareparts', JSON.stringify(formData.spareparts || []));
+  // 1. Ambil data SEBELUM masuk async/transition
+  const currentForm = e.currentTarget;
+  const formDataObj = new FormData(currentForm);
+  
+  // 2. Tambahin data spareparts
+  formDataObj.append('spareparts', JSON.stringify(formData.spareparts || []));
 
-    startTransition(async () => {
-      const result = await updateInvoice(formDataObj);
-      
-      if (result.success) {
-        setSuccess(result.message);
-        console.log(formDataObj);
-      } else {
-        setError(result.message);
-      }
-    });
-  };
+  startTransition(async () => {
+    const result = await updateInvoice(formDataObj);
+    if (result.success) {
+      setSuccess(result.message);
+      router.push('/fl/dashboard/service/daily');
+    } else {
+      setError(result.message);
+    }
+  });
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-4 md:p-8 transition-colors">
@@ -139,6 +158,9 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
                 </h1>
                 <p className="text-orange-100">
                   Invoice ID: <span className="font-mono font-bold">{invoiceId}</span>
+                </p>
+                <p className="text-orange-100">
+                  Penerima: <span className="font-mono font-bold">{formData.recipient_name}</span>
                 </p>
               </div>
               </div>
@@ -168,26 +190,50 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Nama Penerima
-                  </label>
-                  <input
-                    type="text"
-                    name="recipient_name"
-                    value={formData.recipient_name}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Customer ID
                   </label>
                   <input
                     type="text"
                     name="customer_id"
                     value={formData.customer_id}
-                    onChange={handleInputChange}
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
+                    readOnly
+                  />
+                </div>
+                <div >
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Penerima
+                  </label>
+                  <input
+                    type="text"
+                    name="recipient_name"
+                    value={formData.recipient_name}
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Nama Pelanggan
+                  </label>
+                  <input
+                    type="text"
+                    name="customer_name"
+                    value={formData.customers_info?.customer_name || ''}
+                    onChange={handleCustomersInfoChange}
+                    className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Nomor Hp Pelanggan
+                  </label>
+                  <input
+                    type="text"
+                    name="customer_phone_number"
+                    value={formData.customers_info?.customer_phone_number || ''}
+                    onChange={handleCustomersInfoChange}
                     className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
                     required
                   />
@@ -245,10 +291,10 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
                     <input
                       type="datetime-local"
                       name="entry_datetime"
-                      value={formData.entry_datetime}
+                      value={formatDateTimeLocal(formData.entry_datetime)}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
-                      required
+                      readOnly
                     />
                   </div>
                   <div>
@@ -261,7 +307,7 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
                       value={formData.location}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
-                      required
+                      readOnly
                     />
                   </div>
                 </div>
@@ -321,7 +367,7 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
                   </label>
                   <select
                     name="technician"
-                    value={formData.technician}
+                    value={formData.technician || ""}
                     onChange={handleTechnicianChange}
                     className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
                     required
@@ -409,9 +455,9 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
                         </label>
                         <input
                           type="text"
-                          value={sparepart.sparepert_variant || ''}
+                          value={sparepart.sparepart_variant || ''}
                           onChange={(e) =>
-                            handleSparepartChange(index, 'sparepert_variant', e.target.value)
+                            handleSparepartChange(index, 'sparepart_variant', e.target.value)
                           }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 dark:bg-gray-600 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
                         />
@@ -490,7 +536,7 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
                   <input
                     type="number"
                     name="final_price"
-                    value={formData.final_price}
+                    value={formData.final_price || 0}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
                     required
@@ -530,8 +576,8 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
                   </label>
                   <input
                     type="datetime-local"
-                    name="pickuped_datetime"
-                    value={formData.pickuped_datetime || ''}
+                    name="pickedup_at"
+                    value={formData.pickedup_at || ''}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:border-orange-400 dark:focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 transition-all"
                   />

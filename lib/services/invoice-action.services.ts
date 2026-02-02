@@ -1,115 +1,200 @@
-'use server';
-
-import { ServiceTransaction } from '@/config/type';
+"use server"
+import { ServiceTransaction, Sparepart } from '@/config/type';
+import { createClient } from '../supabase/server';
 import { revalidatePath } from 'next/cache';
 
 export async function getInvoiceData(invoiceId: string): Promise<ServiceTransaction | null> {
+    const supabase = await createClient();
+    const globalSchema = 'glory';
+    
     try {
-        // TODO: Implement RLS query
-        // const { data, error } = await supabase
-        //     .from('service_transactions')
-        //     .select(`
-        //         *,
-        //         spareparts (*)
-        //     `)
-        //     .eq('invoice_id', invoiceId)
-        //     .single();
+        // 1. Fetch transaction dulu
+        const { data: transaction, error: transactionError } = await supabase
+            .schema(globalSchema)
+            .from('services_transactions')
+            .select('*')
+            .eq('invoice_id', invoiceId)
+            .maybeSingle();
+
+        if (transactionError) {
+            console.error('Error fetching transaction:', transactionError);
+            return null;
+        }
         
-        // Mock data untuk development
+        if (!transaction) {
+            console.error('No transaction found for invoice:', invoiceId);
+            return null;
+        }
+
+        // 2. Fetch spareparts
+        const { data: spareparts, error: sparepartsError } = await supabase
+            .schema(globalSchema)
+            .from('services_spareparts')
+            .select('*')
+            .eq('invoice_id', invoiceId);
+        
+        if (sparepartsError) {
+            console.error('Error fetching spareparts:', sparepartsError);
+        }
+
+        // 3. Fetch customer
+        const { data: customer, error: customerError } = await supabase
+            .schema(globalSchema)
+            .from('services_customers')
+            .select('customer_name, customer_phone_number')
+            .eq('customer_id', transaction.customer_id) // atau sesuaikan field-nya
+            .maybeSingle();
+        
+        if (customerError) {
+            console.error('Error fetching customer:', customerError);
+        }
+
+        // 4. Merge data
         return {
-            id: 1,
-            invoice_id: invoiceId,
-            customer_id: 'CUST-001',
-            recipient_name: 'John Doe',
-            entry_datetime: '2024-01-28T10:00',
-            complaint: 'LCD pecah',
-            treatment: 'Ganti LCD',
-            phisical_condition: 'Body bagus, LCD pecah',
-            technician: 'ibnu',
-            technician_fee: 50000,
-            phone_brand: 'Samsung Galaxy S21',
-            phone_imei: '123456789012345',
-            initial_price: 500000,
-            final_price: 500000,
-            location: 'Jakarta',
-            status: 'in_process',
-            pickuped_datetime: null,
-            spareparts: [
-                {
-                    id: 1,
-                    invoice_id: invoiceId,
-                    sparepart_name: 'LCD Samsung S21',
-                    sparepart_price: 450000,
-                    sparepart_warranty: '30-Hari',
-                    sparepert_variant: 'Original',
-                }
-            ],
-        };
+            ...transaction,
+            spareparts: spareparts || [],
+            customers_info: customer || null
+        } as ServiceTransaction;
+
     } catch (error) {
-        console.error('Error fetching invoice:', error);
+        console.error('Error in getInvoiceData:', error);
         return null;
     }
 }
 
 export async function updateInvoice(formData: FormData) {
+    const supabase = await createClient();
+    const globalSchema = 'glory';
+    
     try {
-        // Parse form data
         const invoiceId = formData.get('invoice_id') as string;
-        const data = {
+        
+        // 1. Parse transaction data
+        const transactionData = {
             customer_id: formData.get('customer_id') as string,
             recipient_name: formData.get('recipient_name') as string,
             entry_datetime: formData.get('entry_datetime') as string,
             complaint: formData.get('complaint') as string,
-            treatment: formData.get('treatment') as string,
-            phisical_condition: formData.get('phisical_condition') as string,
+            treatment: formData.get('treatment') as string || null,
+            phisical_condition: formData.get('phisical_condition') as string || null,
             technician: formData.get('technician') as string,
-            technician_fee: formData.get('technician_fee') ? Number(formData.get('technician_fee')) : null,
+            technicial_fee: formData.get('technician_fee') ? Number(formData.get('technician_fee')) : null,
             phone_brand: formData.get('phone_brand') as string,
-            phone_imei: formData.get('phone_imei') as string,
+            phone_imei: formData.get('phone_imei') as string || null,
             initial_price: Number(formData.get('initial_price')),
             final_price: Number(formData.get('final_price')),
             location: formData.get('location') as string,
             status: formData.get('status') as ServiceTransaction['status'],
-            pickuped_datetime: formData.get('pickuped_datetime') as string || null,
+            pickedup_at: (formData.get('pickedup_at') as string ).trim() === "" ? null : formData.get('pickedup_at') as string,
         };
 
-        // Parse spareparts JSON
         const sparepartsJson = formData.get('spareparts') as string;
-        const spareparts = sparepartsJson ? JSON.parse(sparepartsJson) : [];
+        const spareparts: Sparepart[] = sparepartsJson ? JSON.parse(sparepartsJson) : [];
 
-        // TODO: Implement RLS update
-        // const { error } = await supabase
-        //     .from('service_transactions')
-        //     .update(data)
-        //     .eq('invoice_id', invoiceId);
+        // 2. Update transaction
+        const { error: transactionError } = await supabase
+            .schema(globalSchema)
+            .from('services_transactions')
+            .update(transactionData)
+            .eq('invoice_id', invoiceId);
         
-        // TODO: Handle spareparts update/insert/delete
+        if (transactionError) {
+            console.error('Error updating transaction:', transactionError);
+            return { success: false, message: 'Gagal mengupdate transaksi: ' + transactionError.message };
+        }
+
+        // 3. Handle spareparts update
+        // 3a. Fetch existing spareparts untuk tahu mana yang harus di-delete
+        const { data: existingSpareparts, error: fetchError } = await supabase
+            .schema(globalSchema)
+            .from('services_spareparts')
+            .select('id')
+            .eq('invoice_id', invoiceId);
         
-        console.log('Updating invoice:', { invoiceId, data, spareparts });
+        if (fetchError) {
+            console.error('Error fetching existing spareparts:', fetchError);
+        }
+
+        const existingIds = existingSpareparts?.map(sp => sp.id) || [];
+        const newSparepartsIds = spareparts.map(sp => sp.id).filter(id => id); // Filter out undefined/null
+
+        // 3b. Delete spareparts yang tidak ada di form (yang di-remove user)
+        const idsToDelete = existingIds.filter(id => !newSparepartsIds.includes(id));
         
-        // Revalidate the page
+        if (idsToDelete.length > 0) {
+            const { error: deleteError } = await supabase
+                .schema(globalSchema)
+                .from('services_spareparts')
+                .delete()
+                .in('id', idsToDelete);
+            
+            if (deleteError) {
+                console.error('Error deleting spareparts:', deleteError);
+            }
+        }
+
+        // 3c. Upsert spareparts (update existing, insert new)
+        if (spareparts.length > 0) {
+            const sparepartsToUpsert = spareparts.map(sp => ({
+                id: sp.id || undefined, // Jika id kosong/baru, Supabase akan auto-generate
+                invoice_id: invoiceId,
+                sparepart_name: sp.sparepart_name,
+                sparepart_price: sp.sparepart_price,
+                sparepart_warranty: sp.sparepart_warranty || null,
+                sparepart_variant: sp.sparepart_variant || null,
+            }));
+
+            const { error: upsertError } = await supabase
+                .schema(globalSchema)
+                .from('services_spareparts')
+                .upsert(sparepartsToUpsert, {
+                    onConflict: 'id', // Jika id sudah ada, update. Jika belum, insert.
+                });
+            
+            if (upsertError) {
+                console.error('Error upserting spareparts:', upsertError);
+                return { success: false, message: 'Gagal mengupdate spareparts: ' + upsertError.message };
+            }
+        }
+
+        // 4. Revalidate path
         revalidatePath(`/update/${invoiceId}`);
+        revalidatePath('/'); // Jika ada list page
         
         return { success: true, message: 'Invoice berhasil diupdate!' };
+        
     } catch (error) {
         console.error('Error updating invoice:', error);
-        return { success: false, message: 'Gagal mengupdate invoice' };
+        return { 
+            success: false, 
+            message: error instanceof Error ? error.message : 'Gagal mengupdate invoice' 
+        };
     }
 }
 
 export async function deleteSparepart(sparepartId: number) {
+    const supabase = await createClient();
+    const globalSchema = 'glory';
+    
     try {
-        // TODO: Implement RLS delete
-        // const { error } = await supabase
-        //     .from('spareparts')
-        //     .delete()
-        //     .eq('id', sparepartId);
+        const { error } = await supabase
+            .schema(globalSchema)
+            .from('services_spareparts')
+            .delete()
+            .eq('id', sparepartId);
         
-        console.log('Deleting sparepart:', sparepartId);
+        if (error) {
+            console.error('Error deleting sparepart:', error);
+            return { success: false, message: 'Gagal menghapus sparepart: ' + error.message };
+        }
         
-        return { success: true };
+        return { success: true, message: 'Sparepart berhasil dihapus' };
+        
     } catch (error) {
         console.error('Error deleting sparepart:', error);
-        return { success: false, message: 'Gagal menghapus sparepart' };
+        return { 
+            success: false, 
+            message: error instanceof Error ? error.message : 'Gagal menghapus sparepart' 
+        };
     }
 }

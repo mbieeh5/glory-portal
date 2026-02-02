@@ -196,3 +196,87 @@ alter policy "owner can insert"
 
 
 
+-- Create SELECT RLS policies with corrected column references
+
+ALTER TABLE IF EXISTS "glory"."services_transactions" ENABLE ROW LEVEL SECURITY;
+
+-- Admin
+DROP POLICY IF EXISTS "glory_services_transactions_select_admin" ON "glory"."services_transactions";
+CREATE POLICY "glory_services_transactions_select_admin"
+  ON "glory"."services_transactions"
+  FOR SELECT
+  TO authenticated
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+-- Moderator
+DROP POLICY IF EXISTS "glory_services_transactions_select_moderator" ON "glory"."services_transactions";
+CREATE POLICY "glory_services_transactions_select_moderator"
+  ON "glory"."services_transactions"
+  FOR SELECT
+  TO authenticated
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'moderator'
+    AND date_trunc('second', COALESCE(entry_datetime, 'epoch'::timestamptz)) = date_trunc('second', now())
+    AND date_trunc('second', COALESCE(updated_at, 'epoch'::timestamptz)) = date_trunc('second', now())
+  );
+
+-- Frontliner (owner_id present on services_transactions)
+DROP POLICY IF EXISTS "glory_services_transactions_select_frontliner" ON "glory"."services_transactions";
+CREATE POLICY "glory_services_transactions_select_frontliner"
+  ON "glory"."services_transactions"
+  FOR SELECT
+  TO authenticated
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'frontliner'
+    AND ((select auth.uid()) IS NOT NULL AND (select auth.uid()) = owner_id)
+  );
+
+--------------------------------------------------------------------------------
+ALTER TABLE IF EXISTS "glory"."services_spareparts" ENABLE ROW LEVEL SECURITY;
+
+-- Admin
+DROP POLICY IF EXISTS "glory_services_spareparts_select_admin" ON "glory"."services_spareparts";
+CREATE POLICY "glory_services_spareparts_select_admin"
+  ON "glory"."services_spareparts"
+  FOR SELECT
+  TO authenticated
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+-- Frontliner & Moderator (tenant_id present on services_spareparts)
+DROP POLICY IF EXISTS "glory_services_spareparts_select_frontliner" ON "glory"."services_spareparts";
+CREATE POLICY "glory_services_spareparts_select_frontliner"
+  ON "glory"."services_spareparts"
+  FOR SELECT
+  TO authenticated
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'frontliner' OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'moderator'
+    AND ((auth.jwt() ->> 'tenant_id') IS NOT NULL AND tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+  );
+
+--------------------------------------------------------------------------------
+ALTER TABLE IF EXISTS "glory"."services_customers" ENABLE ROW LEVEL SECURITY;
+
+-- Admin
+DROP POLICY IF EXISTS "glory_services_customers_select_admin" ON "glory"."services_customers";
+CREATE POLICY "glory_services_customers_select_admin"
+  ON "glory"."services_customers"
+  FOR SELECT
+  TO authenticated
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+-- Frontliner & Moderator (tenant_id present on services_customers)
+DROP POLICY IF EXISTS "glory_services_customers_select_frontliner" ON "glory"."services_customers";
+CREATE POLICY "glory_services_customers_select_frontliner"
+  ON "glory"."services_customers"
+  FOR SELECT
+  TO authenticated
+  USING (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'frontliner' OR (auth.jwt() -> 'app_metadata' ->> 'role') = 'moderator'
+    AND ((auth.jwt() ->> 'tenant_id') IS NOT NULL AND tenant_id = (auth.jwt() ->> 'tenant_id')::uuid)
+  );
