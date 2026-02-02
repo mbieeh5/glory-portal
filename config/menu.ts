@@ -26,7 +26,6 @@ export const serviceMenus = {
     { label: 'Input Servis', href: '/fl/dashboard/service/input', icon: "Wrench" },  // Halaman Input Services
     { label: 'Update', href: '/fl/dashboard/service/update/', icon: "Search" }, // Halaman untuk mengUpdate data service
     { label: 'Master Data', href: '/fl/dashboard/service/daily', icon: "FileText" }, // Filter bulan, edit, cancel
-    { label: 'Statistik Poin', href: '/fl/dashboard/service/statistik', icon: "Award" }, // Itung gaji crew
   ]
 };
 
