@@ -36,20 +36,22 @@ export const serviceMenus = {
 export const bankMenus = {
   // Role: FRONTLINER
   frontliner: [
-    { label: 'Dashboard', href: '/fl/dashboard/bank', icon: "LayoutDashboard" }, // Dashboard utama untuk user
-    { label: 'Transfer Hari Ini', href: '/fl/dashboard/bank/daily', icon: "ArrowRightLeft" }, // Halaman cek Mutasi perhari
     { label: 'Cetak Struk', href: '/fl/dashboard/bank/print', icon: "Printer" }, // Halaman cetak struk transfer
   ],
 
   // Role: MODERATOR (BLOCKED - Gak punya menu)
-  moderator: [], 
-
+  moderator: [
+    { label: 'Dashboard', href: '/fl/dashboard/bank', icon: "LayoutDashboard" }, // Dashboard utama untuk user
+    { label: 'Mutasi', href: '/fl/dashboard/bank/mutations', icon: "History" }, // Halaman Cek mutasi lengkap atau *Master Data*
+    { label: 'Kelola Saldo', href: '/fl/dashboard/bank/balance', icon: "Wallet" }, // Halaman untuk memindahkan Saldo atau Menambah saldo
+    { label: 'Cetak Struk', href: '/fl/dashboard/bank/print', icon: "Printer" }, // Halaman cetak struk transfer
+  ], 
+  
   // Role: ADMIN
   admin: [
     { label: 'Dashboard', href: '/fl/dashboard/bank', icon: "LayoutDashboard" }, // Dashboard utama untuk user
-    { label: 'Mutasi Lengkap', href: '/fl/dashboard/bank/mutations', icon: "History" }, // Halaman Cek mutasi lengkap atau *Master Data*
+    { label: 'Mutasi', href: '/fl/dashboard/bank/mutations', icon: "History" }, // Halaman Cek mutasi lengkap atau *Master Data*
     { label: 'Kelola Saldo', href: '/fl/dashboard/bank/balance', icon: "Wallet" }, // Halaman untuk memindahkan Saldo atau Menambah saldo
-    { label: 'Hitung Poin', href: '/fl/dashboard/bank/points', icon: "Award" }, // Halaman untuk menghitung point para crew
     { label: 'Cetak Struk', href: '/fl/dashboard/bank/print', icon: "Printer" }, // Halaman cetak struk transfer
   ]
 };
