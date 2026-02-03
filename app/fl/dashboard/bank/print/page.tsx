@@ -355,21 +355,6 @@ export default function TransferFormPage() {
                   </select>
                 </div>
 
-                {/* Nama Penerima */}
-                <div className="group/field">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
-                     Nama Penerima
-                  </label>
-                  <input
-                    type="text"
-                    value={recipientName}
-                    onChange={(e) => setRecipientName(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 hover:border-blue-400 dark:hover:border-blue-500"
-                    placeholder="Masukkan nama penerima"
-                    required
-                  />
-                </div>
-
                 {/* Bank Penerima - dengan search */}
                 <div className="relative group/field">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
@@ -428,6 +413,21 @@ export default function TransferFormPage() {
                       </div>
                     </>
                   )}
+                </div>
+
+                {/* Nama Penerima */}
+                <div className="group/field">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
+                     Nama Penerima
+                  </label>
+                  <input
+                    type="text"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 hover:border-blue-400 dark:hover:border-blue-500"
+                    placeholder="Masukkan nama penerima"
+                    required
+                  />
                 </div>
 
                 {/* No Rekening */}
