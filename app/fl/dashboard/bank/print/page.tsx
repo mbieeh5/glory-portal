@@ -231,7 +231,7 @@ export default function TransferFormPage() {
       const transferId = `${locationPrefix}-${timestamp}-${randomStr}`;
 
       // 4. Call RPC
-      const { error } = await supabase.schema('glory').rpc('submit_bank_transaction_final', {
+      const { error } = await supabase.schema('glory').rpc('fn_process_bank_transactions_v2', {
         p_transfer_id: transferId,
         p_bank_id: handleBankConfig.selectedBankId,
         p_amount: Number(amount),
