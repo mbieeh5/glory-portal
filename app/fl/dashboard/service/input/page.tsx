@@ -318,7 +318,7 @@ useEffect(() => {
                 {/* ... Complaint & Phys Condition sama aja ... */}
                  <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Keluhan *
+                    Kondisi *
                   </label>
                   <textarea
                     name="complaint"
@@ -327,7 +327,7 @@ useEffect(() => {
                     required
                     rows={4}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white resize-none"
-                    placeholder="Deskripsikan keluhan atau kerusakan..."
+                    placeholder="Deskripsikan Kondisi atau kerusakan..."
                   />
                 </div>
                 <div>

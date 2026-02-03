@@ -129,16 +129,16 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
 
           <div>
             <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-              <Wrench size={16} /> Keluhan & Treatment
+              <Wrench size={16} /> Kondisi & Perbaikan
             </h4>
             <div className="space-y-2">
               <div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Keluhan:</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Kondisi:</span>
                 <p className="text-sm text-gray-900 dark:text-white mt-1">{row.complaint}</p>
               </div>
               {row.treatment && (
                 <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Treatment:</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Perbaikan:</span>
                   <p className="text-sm text-gray-900 dark:text-white mt-1">{row.treatment}</p>
                 </div>
               )}
@@ -154,7 +154,7 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
             </h4>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Harga Awal:</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Estimasi Biaya:</span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   Rp {row.initial_price.toLocaleString('id-ID')}
                 </span>
@@ -329,7 +329,7 @@ const MobileCardView = ({
         <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
           <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
             <FileText size={12} />
-            <span>Keluhan</span>
+            <span>Kondisi</span>
           </div>
           <p className="text-sm text-gray-900 dark:text-white line-clamp-2">{row.complaint}</p>
         </div>
@@ -508,7 +508,7 @@ const ServiceTransactionsTable = () => {
       },
       {
         accessorKey: 'complaint',
-        header: 'Keluhan',
+        header: 'Kondisi',
         cell: ({ getValue }) => (
           <span className="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate block">
             {getValue() as string}

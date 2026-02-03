@@ -97,7 +97,7 @@ const NotaResultCard = ({ data }: { data: NotaData }) => {
               <Smartphone size={20} className="md:w-6 md:h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Keluhan / Layanan</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Kondisi / Layanan</p>
               <p className="font-semibold text-gray-900 dark:text-white text-base md:text-lg leading-tight">{data.layanan}</p>
             </div>
           </div>
