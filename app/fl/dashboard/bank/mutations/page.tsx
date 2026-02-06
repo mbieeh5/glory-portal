@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function MutasiPage() {
   const supabase = await createClient();
-
   try {
     // 1. Fetch Data Transaksi + Join Customer + Join Config Bank
     const { data: rawData, error } = await supabase
@@ -25,7 +24,7 @@ export default async function MutasiPage() {
         )
       `)
       .order("created_at", { ascending: false }) // Urutkan dari yang terbaru
-      .limit(500); // Batasi 500 transaksi terakhir biar performa kenceng
+      .gte('created_at',  new Date(new Date().setHours(0,0,0,0)).toISOString())
 
     if (error) {
       console.error("🔥 Supabase Error:", error.message);
@@ -48,10 +47,13 @@ export default async function MutasiPage() {
 
       // Logic Deteksi Lokasi dari ID Transfer
       // Asumsi format ID lu: "CKT-..." atau "SKH-..."
-      let location = "Unknown";
+      const BranchLocation: Record<string, string> = {
+        CKT: "Cikaret",
+        SKH: "Sukahati",
+      };
       const trfId = item.transfer_id || "";
-      if (trfId.includes("CKT")) location = "Cikaret";
-      else if (trfId.includes("SKH")) location = "Sukahati";
+      const prefix = trfId.split('-')[0]
+      const location = BranchLocation[prefix] || "unknown"
 
       return {
         id: item.id,

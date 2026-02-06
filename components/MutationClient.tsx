@@ -92,7 +92,11 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
     },
     {
       accessorKey: "entry_datetime",
-      header: "Waktu",
+      header: ({column}) => (
+        <button className="flex items-center gap-2 hover:text-blue-600" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Waktu <ArrowUpDown className="w-3 h-3"/>
+        </button>
+      ),
       cell: ({ row }) => <div className="text-xs">{formatDate(row.getValue("entry_datetime"))}</div>,
     },
     {
@@ -103,11 +107,15 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
           <div className="font-bold text-sm">{row.getValue("customer_name")}</div>
           <div className="text-xs text-slate-500 font-mono">{row.original.customer_bank_account} ({row.original.customer_bank_name})</div>
         </div>
-      ),
+    )
     },
     {
       accessorKey: "bank_name",
-      header: "Sumber",
+      header: ({column}) => (
+        <button className="flex items-center gap-2 hover:text-blue-600" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          Sumber <ArrowUpDown className="w-3 h-3"/>
+        </button>
+      ),
       cell: ({ row }) => <div className="text-xs font-medium">{row.getValue("bank_name")}</div>,
     },
     {
@@ -147,23 +155,26 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
   ], []);
 
   // --- FILTERING ---
-  const filteredData = useMemo(() => {
-    // 🛡️ Double Safety: Pastikan data itu array sebelum di-filter
+const filteredData = useMemo(() => {
     if (!Array.isArray(data)) return [];
 
     let filtered = [...data];
+    // 🏷️ BARU filter lokasi & status
     if (locationFilter !== "all") filtered = filtered.filter((t) => t.location === locationFilter);
     if (statusFilter !== "all") filtered = filtered.filter((t) => t.status === statusFilter);
     
-    // Global Search (Simple implementation)
+    // 🔍 SEARCH DULU (paling prioritas)
     if (globalFilter) {
-      const lower = globalFilter.toLowerCase();
+      const lower = globalFilter.toLowerCase().trim();
       filtered = filtered.filter(t => 
+        t.customer_bank_account.toLowerCase().includes(lower) ||
         t.customer_name.toLowerCase().includes(lower) || 
-        t.transfer_id.toLowerCase().includes(lower) ||
-        t.customer_bank_account.includes(lower)
+        t.customer_bank_name.toLowerCase().includes(lower)||
+        t.transfer_id.toLowerCase().includes(lower)
       );
     }
+    
+    
     return filtered;
   }, [data, locationFilter, statusFilter, globalFilter]);
 
@@ -179,8 +190,9 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
   // --- TABLE INSTANCE ---
   const table = useReactTable({
     data: filteredData, columns, 
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting, onGlobalFilterChange: setGlobalFilter,
+    state: { sorting },
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(), getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(), getPaginationRowModel: getPaginationRowModel(),
     initialState: { pagination: { pageSize: 10 } },
