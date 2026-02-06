@@ -66,6 +66,7 @@ export default function PrintTransferPage() {
         if (error) throw error;
         
         if (trxData) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const raw = trxData as any;
 
           const formattedData: TransactionWithRelations = {
@@ -84,6 +85,7 @@ export default function PrintTransferPage() {
           // Sekarang lu bisa set langsung tanpa 'unknown' atau 'ts-ignore'
           setData(formattedData);
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) { // Kasih any di sini biar gak rewel
         console.error("Error fetching struk:", err); 
         setErrorMsg(err.message || "Terjadi kesalahan");

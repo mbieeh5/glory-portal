@@ -9,12 +9,12 @@ const supabase = createClient(
 interface NotaCheckResponse {
     found: boolean;
     requiresVerification: boolean;
-    last5Digits?: string; // Untuk verifikasi (tidak di-expose ke frontend)
+    last5Digits?: string;
     data?: {
         nomorNota: string;
-        nama: string; // Sudah disensor
+        nama: string;
         layanan: string;
-        nomorHp: string; // Sudah disensor
+        nomorHp: string;
         status: string;
         tanggal: string;
         total: string;

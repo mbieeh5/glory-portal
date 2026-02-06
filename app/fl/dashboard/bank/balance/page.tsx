@@ -18,8 +18,8 @@ import { createClient } from "@/lib/supabase/client";
 // --- TYPES (Sesuaikan sama DB glory.bank_config) ---
 interface Bank {
   id: string;
-  bank_name: string;      // Contoh: BCA
-  account_name: string;   // Contoh: RAFI ANGGORO
+  bank_name: string; 
+  account_name: string;
   account_number: string;
   current_balance: number;
 }
