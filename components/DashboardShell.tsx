@@ -18,7 +18,8 @@ import {
   Search,
   Calendar,
   Menu,
-  X
+  X,
+  FileSliders
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { LogoutButton } from "./logout-button";
@@ -59,7 +60,7 @@ export default function DashboardShell({
     LayoutDashboard, 
     Wrench, 
     FileText, 
-    History, 
+    History,
     ArrowRightLeft, 
     Printer, 
     Wallet, 
@@ -155,6 +156,7 @@ export default function DashboardShell({
                   { title.includes("Bank") && <Banknote size={20} /> }
                   { (title.includes("Admin") || title.includes("Captain"))}
                   { title.includes("Rekap") && <FileText size={20} /> }
+                  { title.includes('Cockpit') && <FileSliders size={20} />}
                   { title.includes("Service") && <Cpu size={20} /> }
                 </div>
                 <div>

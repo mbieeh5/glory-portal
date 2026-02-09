@@ -109,7 +109,7 @@ export default function PrintTransferPage() {
           <head>
             <title>Struk - ${transferId}</title>
             <style>
-              @page { margin: 0; size: 80mm 297mm; }
+              @page { margin: 20px; size: 80mm 297mm; }
               body { 
                 margin: 0; 
                 padding: 5px; 
@@ -156,10 +156,10 @@ export default function PrintTransferPage() {
       <div className="w-full max-w-md">
         
         {/* PRINT AREA */}
-        <div id="printArea" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px', color: 'black' }}>
+        <div id="printArea" style={{ fontFamily: "'Courier New', Courier, monospace", fontSize: '12px', color: 'black',}}>
           
-          <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-            <div style={{ fontSize: '16px', fontWeight: 'bold' }}>GLORY CELL</div>
+          <div style={{ textAlign: 'center', marginBottom: '10px', fontWeight: "bold" }}>
+            <div style={{ fontSize: '16px'}}>GLORY CELL</div>
             <div>{locations ? "JLN. RAYA CIKARET NO 002B" : "JLN. RAYA SUKAHATI NO 01"}</div>
             <div>CIBINONG - BOGOR</div>
             <div style={{ marginTop: '5px', fontWeight: 'bold' }}>{formatDate(data.entry_datetime)}</div>
@@ -170,32 +170,32 @@ export default function PrintTransferPage() {
           </div>
 
           {/* DETAIL ROW */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px',  fontWeight: 'bold'}}>
             <span>No. Rekening</span>
-            <span style={{ fontWeight: 'bold' }}>{data.bank_customers?.customer_bank_account || '-'}</span>
+            <span>{data.bank_customers?.customer_bank_account || '-'}</span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontWeight: 'bold' }}>
             <span>Bank Tujuan</span>
-            <span style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>{data.bank_customers?.customer_bank_name || '-'}</span>
+            <span style={{textTransform: 'uppercase' }}>{data.bank_customers?.customer_bank_name || '-'}</span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontWeight: 'bold' }}>
             <span>Nama</span>
-            <span style={{ fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'right', maxWidth: '60%' }}>
+            <span style={{textTransform: 'uppercase', textAlign: 'right', maxWidth: '60%' }}>
               {data.bank_customers?.customer_name || '-'}
             </span>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontWeight: "bold"}}>
             <span>Pengirim</span>
-            <span style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>{data.bank_config?.account_name || 'BANK'}</span>
+            <span style={{textTransform: 'uppercase' }}>{data.bank_config?.account_name || 'BANK'}</span>
           </div>
 
           {data.description && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontWeight:'bold' }}>
               <span>Berita</span>
-              <span style={{ fontWeight: 'bold', textTransform: 'uppercase', fontSize: '10px' }}>{data.description}</span>
+              <span style={{ textTransform: 'uppercase', fontSize: '10px' }}>{data.description}</span>
             </div>
           )}
 

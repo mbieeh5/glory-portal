@@ -15,6 +15,7 @@ import { redirect } from "next/navigation";
 import { JwtPayload } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import InfoHolder from "@/components/InfoHolder";
 
 async function UserDetails() {
   const supabase = await createClient();
@@ -49,7 +50,7 @@ export default async function PortalDashboard() {
   return (
     // Base Background: Light mode putih bersih, Dark mode hitam pekat
     <main className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-200 font-sans selection:bg-zinc-200 dark:selection:bg-zinc-800 relative overflow-hidden transition-colors duration-300">
-      
+      <InfoHolder />
       {/* --- BACKGROUND EFFECTS (Optimized for Safari) --- */}
       <div className="fixed inset-0 z-0 pointer-events-none">
          
