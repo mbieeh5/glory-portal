@@ -91,7 +91,7 @@ export default function DashboardHome() {
 
         setStats([
           { name: "Penerimaan Service Hari Ini", value: dailyCount || 0, icon: Calendar, color: "from-blue-500 to-cyan-500" },
-          { name: "Poin " + (isBoss ? "(Global)" : "(Personal)"), value: totalPoints, icon: TrendingUp, color: "from-purple-500 to-pink-500" },
+          { name: "Poin " + (isBoss ? "(Global)" : "(Personal)"), value: isBoss ? totalPoints : "Hah Kosyong?", icon: TrendingUp, color: "from-purple-500 to-pink-500" },
           { name: "Selesai Bulan Ini", value: monthlyCount || 0, icon: Users, color: "from-green-500 to-emerald-500" },
           { name: "Jabatan", value: role.charAt(0).toUpperCase() + role.slice(1), icon: Briefcase, color: "from-orange-500 to-red-500" },
         ]);

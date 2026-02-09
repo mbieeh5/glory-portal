@@ -29,8 +29,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Calendar,
-  FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
@@ -74,7 +72,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// --- EXPANDED ROW CONTENT ---   
+// --- EXPANDED ROW CONTENT - REDESIGNED ---   
 const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -84,107 +82,119 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      className={`p-4 md:p-6 border-t ${isDark ? 'bg-black border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+      className={`p-3 border-t ${isDark ? 'bg-gray-900/50 border-gray-700' : 'bg-slate-50 border-gray-200'}`}
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        {/* Left Column */}
-        <div className="space-y-4">
-          <div>
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-              <User size={16} /> Detail Pelanggan
-            </h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Nama:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.customer_id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Penerima:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.recipient_name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Cabang:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.location.toLocaleUpperCase()}</span>
-              </div>
+      {/* Single Column Layout - Clean & Simple */}
+      <div className="space-y-3 max-w-4xl">
+        {/* Customer Info Section */}
+        <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+            <User size={12} /> Detail Pelanggan
+          </h4>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Nama</span>
+              <span className="font-medium text-gray-900 dark:text-white">: {row.customer_id}</span>
             </div>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-              <Phone size={16} /> Detail Device
-            </h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Brand:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{row.phone_brand}</span>
-              </div>
-              {row.phone_imei && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">IMEI:</span>
-                  <span className="text-sm font-mono text-gray-900 dark:text-white">{row.phone_imei}</span>
-                </div>
-              )}
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Penerima</span>
+              <span className="font-medium text-gray-900 dark:text-white">: {row.recipient_name}</span>
             </div>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-              <Wrench size={16} /> Kondisi & Perbaikan
-            </h4>
-            <div className="space-y-2">
-              <div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Kondisi:</span>
-                <p className="text-sm text-gray-900 dark:text-white mt-1">{row.complaint}</p>
-              </div>
-              {row.treatment && (
-                <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Perbaikan:</span>
-                  <p className="text-sm text-gray-900 dark:text-white mt-1">{row.treatment}</p>
-                </div>
-              )}
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Cabang</span>
+              <span className="font-medium text-gray-900 dark:text-white">: {row.location.toUpperCase()}</span>
             </div>
           </div>
         </div>
 
-        {/* Right Column */}
-        <div className="space-y-4">
-          <div>
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-              <CreditCard size={16} /> Detail Biaya
-            </h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Estimasi Biaya:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  Rp {row.initial_price.toLocaleString('id-ID')}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Harga Final:</span>
-                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                  Rp {row.final_price ? row.final_price.toLocaleString('id-ID'): 0}
-                </span>
-              </div>
-              {row.technicial_fee && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Fee Teknisi:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    Rp {row.technicial_fee.toLocaleString('id-ID')}
-                  </span>
-                </div>
-              )}
+        {/* Device Info Section */}
+        <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+            <Phone size={12} /> Detail Device
+          </h4>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Brand</span>
+              <span className="font-medium text-gray-900 dark:text-white">: {row.phone_brand}</span>
             </div>
+            {row.phone_imei && (
+              <div className="flex items-start">
+                <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">IMEI</span>
+                <span className="font-mono text-gray-900 dark:text-white">: {row.phone_imei}</span>
+              </div>
+            )}
           </div>
+        </div>
 
-          <div>
-            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-              <Clock size={16} /> Timeline
-            </h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Masuk:</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  {new Date(row.entry_datetime).toLocaleDateString('id-ID', {
+        {/* Complaint & Treatment Section */}
+        <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+            <Wrench size={12} /> Kondisi & Perbaikan
+          </h4>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Keluhan</span>
+              <span className="text-gray-900 dark:text-white flex-1">: {row.complaint}</span>
+            </div>
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Kondisi Fisik</span>
+              <span className="text-gray-900 dark:text-white flex-1">: {row.phisical_condition || '-'}</span>
+            </div>
+            {row.treatment && (
+              <div className="flex items-start">
+                <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Perbaikan</span>
+                <span className="text-gray-900 dark:text-white flex-1">: {row.treatment}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Price Info Section */}
+        <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+            <CreditCard size={12} /> Detail Biaya
+          </h4>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Estimasi Awal</span>
+              <span className="font-medium text-gray-900 dark:text-white">: Rp {row.initial_price.toLocaleString('id-ID')}</span>
+            </div>
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Harga Final</span>
+              <span className="font-bold text-orange-600 dark:text-orange-400">: Rp {row.final_price ? row.final_price.toLocaleString('id-ID') : 0}</span>
+            </div>
+            {row.technicial_fee && (
+              <div className="flex items-start">
+                <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Fee Teknisi</span>
+                <span className="font-medium text-gray-900 dark:text-white">: Rp {row.technicial_fee.toLocaleString('id-ID')}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Timeline Section */}
+        <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+            <Clock size={12} /> Timeline
+          </h4>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex items-start">
+              <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Masuk</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                : {new Date(row.entry_datetime).toLocaleDateString('id-ID', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            </div>
+            {row.pickedup_at && (
+              <div className="flex items-start">
+                <span className="text-gray-500 dark:text-gray-400 w-24 flex-shrink-0">Diambil</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  : {new Date(row.pickedup_at).toLocaleDateString('id-ID', {
                     day: '2-digit',
                     month: 'short',
                     year: 'numeric',
@@ -193,59 +203,49 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                   })}
                 </span>
               </div>
-              {row.pickedup_at && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Diambil:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {new Date(row.pickedup_at).toLocaleDateString('id-ID', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </span>
+            )}
+          </div>
+        </div>
+
+        {/* Spareparts Section */}
+        {row.spareparts && row.spareparts.length > 0 && (
+          <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+              <Package size={12} /> Sparepart Digunakan
+            </h4>
+            <div className="space-y-2">
+              {row.spareparts.map((part) => (
+                <div
+                  key={part.id}
+                  className={`p-2 rounded-lg border ${isDark ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
+                >
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-start">
+                      <span className="text-gray-500 dark:text-gray-400 w-20 flex-shrink-0">Nama</span>
+                      <span className="font-medium text-gray-900 dark:text-white flex-1">: {part.sparepart_name}</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-gray-500 dark:text-gray-400 w-20 flex-shrink-0">Harga</span>
+                      <span className="font-bold text-orange-600 dark:text-orange-400">: Rp {part.sparepart_price.toLocaleString('id-ID')}</span>
+                    </div>
+                    {part.sparepart_warranty && (
+                      <div className="flex items-start">
+                        <span className="text-gray-500 dark:text-gray-400 w-20 flex-shrink-0">Garansi</span>
+                        <span className="text-gray-900 dark:text-white">: {part.sparepart_warranty}</span>
+                      </div>
+                    )}
+                    {part.sparepart_variant && (
+                      <div className="flex items-start">
+                        <span className="text-gray-500 dark:text-gray-400 w-20 flex-shrink-0">Warna</span>
+                        <span className="text-gray-900 dark:text-white">: {part.sparepart_variant}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
-
-          {/* Spareparts */}
-          {
-            row.spareparts && (
-              <>
-              {row.spareparts.length > 0 && (
-                <div>
-                <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-                <Package size={16} /> Sparepart Digunakan
-                </h4>
-                <div className="space-y-2">
-                {row.spareparts.map((part) => (
-                  <div
-                    key={part.id}
-                    className={`p-3 rounded-lg border ${
-                      isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-white border-gray-200'
-                      }`}
-                      >
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{part.sparepart_name}</span>
-                      <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
-                        Rp {part.sparepart_price.toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                    <div className="flex gap-3 text-xs text-gray-600 dark:text-gray-400">
-                      {part.sparepart_warranty && <span>Garansi: {part.sparepart_warranty}</span>}
-                      {part.sparepart_variant && <span>Warna: {part.sparepart_variant}</span>}
-                    </div>
-                  </div>
-                ))}
-                </div>
-                </div>
-              )}
-            </>
-            )
-          }
-        </div>
+        )}
       </div>
     </motion.div>
   );
@@ -266,33 +266,35 @@ const MobileCardView = ({
   return (
     <motion.div
       layout
-      className={`rounded-xl border-2 overflow-hidden mb-3 ${
+      className={`rounded-xl border overflow-hidden mb-3 ${
         isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}
     >
-      {/* Card Header - Always Visible */}
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <button
-              onClick={() => router.push(`/fl/dashboard/service/update/${encodeURIComponent(row.invoice_id.trim())}`)}
-              className="font-mono font-bold text-orange-600 dark:text-orange-400 hover:underline text-sm mb-1 block"
-            >
-              {row.invoice_id}
-            </button>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{row.customers_info?.customer_name}</p>
-          </div>
+      {/* Card Header - Compact */}
+      <div className="p-3">
+        {/* Top Row - Invoice & Status */}
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={() => router.push(`/fl/dashboard/service/update/${encodeURIComponent(row.invoice_id.trim())}`)}
+            className="font-mono font-bold text-orange-600 dark:text-orange-400 hover:underline text-xs"
+          >
+            {row.invoice_id}
+          </button>
           <StatusBadge status={row.status} />
         </div>
 
-        {/* Key Info Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
+        {/* Customer Name */}
+        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+          {row.customers_info?.customer_name}
+        </p>
+
+        {/* Compact Info Grid */}
+        <div className={`grid grid-cols-2 gap-2 text-xs mb-2 p-2 rounded-lg ${
+          isDark ? 'bg-gray-700/30' : 'bg-gray-50'
+        }`}>
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
-              <Calendar size={12} />
-              <span>Tanggal</span>
-            </div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
+            <span className="text-gray-500 dark:text-gray-400">Tanggal</span>
+            <p className="font-medium text-gray-900 dark:text-white mt-0.5">
               {new Date(row.entry_datetime).toLocaleDateString('id-ID', {
                 day: '2-digit',
                 month: 'short',
@@ -301,50 +303,46 @@ const MobileCardView = ({
             </p>
           </div>
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
-              <Phone size={12} />
-              <span>Brand</span>
-            </div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{row.phone_brand}</p>
+            <span className="text-gray-500 dark:text-gray-400">Brand</span>
+            <p className="font-medium text-gray-900 dark:text-white mt-0.5">
+              {row.phone_brand}
+            </p>
           </div>
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
-              <User size={12} />
-              <span>Penerima</span>
-            </div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{row.recipient_name}</p>
+            <span className="text-gray-500 dark:text-gray-400">Penerima</span>
+            <p className="font-medium text-gray-900 dark:text-white mt-0.5">
+              {row.recipient_name}
+            </p>
           </div>
           <div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
-              <CreditCard size={12} />
-              <span>Total</span>
-            </div>
-            <p className="text-sm font-bold text-orange-600 dark:text-orange-400">
+            <span className="text-gray-500 dark:text-gray-400">Total</span>
+            <p className="font-bold text-orange-600 dark:text-orange-400 mt-0.5">
               Rp {row.final_price ? row.final_price.toLocaleString('id-ID') : 0}
             </p>
           </div>
         </div>
 
-        {/* Complaint Preview */}
-        <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <FileText size={12} />
-            <span>Kondisi</span>
-          </div>
-          <p className="text-sm text-gray-900 dark:text-white line-clamp-2">{row.complaint}</p>
+        {/* Complaint - Compact */}
+        <div className={`p-2 rounded-lg text-xs ${
+          isDark ? 'bg-gray-700/50' : 'bg-gray-100'
+        }`}>
+          <span className="text-gray-500 dark:text-gray-400 block mb-1">Keluhan:</span>
+          <p className="text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
+            {row.complaint}
+          </p>
         </div>
 
-        {/* Expand Button */}
+        {/* Expand Button - Compact */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className={`w-full mt-3 py-2 rounded-lg border-2 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+          className={`w-full mt-2 py-1.5 rounded-lg border flex items-center justify-center gap-1.5 text-xs font-medium transition-colors ${
             isDark
               ? 'border-gray-600 hover:bg-gray-700 text-gray-300'
-              : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+              : 'border-gray-300 hover:bg-gray-50 text-gray-700'
           }`}
         >
-          {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          {isExpanded ? 'Sembunyikan Detail' : 'Lihat Detail'}
+          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          {isExpanded ? 'Tutup' : 'Detail'}
         </button>
       </div>
 
@@ -731,8 +729,8 @@ const ServiceTransactionsTable = () => {
           </div>
         </div>
 
-        {/* MOBILE VIEW - Card Layout (Hidden on md and up) */}
-        <div className="block lg:hidden">
+        {/* MOBILE VIEW - Card Layout (Only small phones) */}
+        <div className="block sm:hidden">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <RefreshCw className="animate-spin" size={32} />
@@ -746,9 +744,9 @@ const ServiceTransactionsTable = () => {
           )}
         </div>
 
-        {/* DESKTOP/TABLET VIEW - Table Layout (Hidden on mobile) */}
+        {/* TABLET & DESKTOP VIEW - Table Layout (sm and up, includes Fold devices) */}
         <div
-          className={`hidden lg:block rounded-2xl border-2 overflow-hidden relative ${
+          className={`hidden sm:block rounded-2xl border-2 overflow-hidden relative ${
             isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
           }`}
         >
@@ -806,7 +804,7 @@ const ServiceTransactionsTable = () => {
 
         {/* Pagination - Responsive */}
         <div
-          className={`flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 p-4 md:p-6 mt-4 md:mt-0 rounded-2xl border-2 lg:rounded-t-none ${
+          className={`flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 p-4 md:p-6 mt-4 sm:mt-0 rounded-2xl border-2 sm:rounded-t-none ${
             isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
           }`}
         >

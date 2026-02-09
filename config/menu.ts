@@ -55,3 +55,25 @@ export const bankMenus = {
     { label: 'Cetak Struk', href: '/fl/dashboard/bank/print', icon: "Printer" }, // Halaman cetak struk transfer
   ]
 };
+
+
+// ==========================================
+// 🏦 CAptain DUNGEON MENUS
+// ==========================================
+export const captainMenus = {
+  // Role: FRONTLINER (BLOCKED - Gak punya menu)
+  frontliner: [],
+
+  // Role: MODERATOR (BLOCKED - Gak punya menu)
+  moderator: [],
+  
+  // Role: ADMIN
+  admin: [
+    { label: 'Dashboard', href: '/fl/dashboard/captain-only', icon: "LayoutDashboard" }, // Dashboard utama untuk user
+    { label: 'Services', href: '/fl/dashboard/captain-only/service', icon: "History" }, // Halaman Cek mutasi lengkap atau *Master Data*
+    { label: 'Bank', href: '/fl/dashboard/captain-only/bank', icon: "Wallet" }, // Halaman untuk memindahkan Saldo atau Menambah saldo
+    { label: 'Kelola Saldo', href: '/fl/dashboard/captain-only/balance-control', icon: "Wrench" }, // Halaman cetak struk transfer
+    { label: 'Kelola Point', href: '/fl/dashboard/captain-only/point-control', icon: "Wrench" }, // Halaman cetak struk transfer
+    { label: 'Kelola Pelanggan', href: '/fl/dashboard/captain-only/customers-editor', icon: "Wrench" }, // Halaman cetak struk transfer
+  ]
+};

@@ -1,4 +1,4 @@
-import { Wrench, Landmark, Construction } from "lucide-react";
+import { Wrench, Landmark, Construction, FileSliders } from "lucide-react";
 
 export const ModuleMenus = [
     {
@@ -51,14 +51,14 @@ export const ModuleMenus = [
       title: "CAPTAIN ONLY",
       subtitle: "Under Development",
       desc: "Modul ini sedang dalam pengembangan sistem. Akses ditutup sementara oleh Engineering.",
-      href: "#",
-      icon: Construction,
+      href: "/fl/dashboard/captain-only",
+      icon: FileSliders,
       accent: "border-yellow-900/30 border-dashed bg-yellow-900/5", 
       textAccent: "text-yellow-600",
       bgGradient: "from-transparent to-transparent",
       iconBg: "bg-yellow-900/10 border-yellow-900/30",
       iconColor: "text-yellow-600",
-      stat: "MAINTENANCE",
+      stat: "ONLINE",
       disabled: false,
     }
   ];

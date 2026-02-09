@@ -16,7 +16,9 @@ export default async function DashboardFlLayout({children}: {children: React.Rea
 async function AuthGate({children}: {children: React.ReactNode}) {
   return(
     <>
-      {children}
+      <main className="p-4">
+        {children}
+      </main>
     </>
   )
 

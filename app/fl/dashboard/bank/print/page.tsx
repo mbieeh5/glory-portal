@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import getBankAccounts from "@/lib/services/bankaccount.services";
 import { BankConfig } from "@/config/type";
@@ -25,7 +25,7 @@ const BANK_LIST = [
   'Bank Syariah Bukopin',
 ];
 
-const LOCATIONS = ["Cikaret", "Sukahati"];
+const LOCATIONS = ["Cikaret", "Sukahati", "Lain-Lain"];
 
 // Custom Alert Component
 interface CustomAlertProps {
@@ -102,16 +102,22 @@ export default function TransferFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bankConfig, setBankConfig] = useState<BankConfig[] | null>(null);
   
+  // Customer lookup states
+  const [isFetchingCustomer, setIsFetchingCustomer] = useState(false);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  
   // Alert state
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'warning' | 'info'; message: string } | null>(null);
 
   // Helper function to show alert
   const showAlert = (type: 'success' | 'error' | 'warning' | 'info', message: string) => {
     setAlert({ type, message });
-    setTimeout(() => setAlert(null), 5000); // Auto dismiss after 5 seconds
+    setTimeout(() => setAlert(null), 5000);
   };
 
-  React.useEffect(() => {
+  // Fetch bank config
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await getBankAccounts();
@@ -125,18 +131,81 @@ export default function TransferFormPage() {
     fetchData();
   }, []);
 
+  // Auto-fetch customer data when account number has enough digits (minimal 8 digit)
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      // Only fetch if account number is at least 8 digits and hasn't been searched yet
+      if (recipientAccount.length >= 8 && !hasSearched) {
+        setIsFetchingCustomer(true);
+        setHasSearched(true);
+        
+        try {
+          const supabase = createClient();
+          
+          // Query customer based on account number
+          const { data: customerData, error } = await supabase
+            .schema('glory')
+            .from('bank_customers')
+            .select('customer_name, customer_bank_name')
+            .eq('customer_bank_account', recipientAccount)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (error) {
+            console.error("Error fetching customer:", error);
+            setIsNewCustomer(true);
+            setIsFetchingCustomer(false);
+            return;
+          }
+
+          if (customerData) {
+            // Customer found - auto fill the form
+            setRecipientName(customerData.customer_name);
+            setRecipientBank(customerData.customer_bank_name);
+            setSearchBank(customerData.customer_bank_name);
+            setIsNewCustomer(false);
+            showAlert('success', '✅ Data pelanggan ditemukan dan berhasil dimuat!');
+          } else {
+            // Customer not found
+            setIsNewCustomer(true);
+            showAlert('warning', '⚠️ Pelanggan belum pernah transfer. Pastikan input data dengan benar!');
+          }
+        } catch (error) {
+          console.error("Error in customer lookup:", error);
+          setIsNewCustomer(true);
+        } finally {
+          setIsFetchingCustomer(false);
+        }
+      }
+    };
+
+    // Debounce untuk menghindari terlalu banyak query
+    const timeoutId = setTimeout(() => {
+      fetchCustomerData();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [recipientAccount, hasSearched]);
+
+  // Reset hasSearched when account number changes
+  useEffect(() => {
+    if (recipientAccount.length < 8) {
+      setHasSearched(false);
+      setIsNewCustomer(false);
+    }
+  }, [recipientAccount]);
+
   // Calculate admin margin
   const calculateAdminMargin = useCallback((amount: number): number => {
     if (amount <= 0) return 0;
     
-    // Tier Dasar (<= 10 Juta)
     if (amount <= 500_000) return 5_000;
     if (amount <= 1_000_000) return 10_000;
     if (amount <= 3_000_000) return 15_000;
     if (amount <= 5_000_000) return 20_000;
     if (amount <= 10_000_000) return 25_000;
 
-    // Logic "Kelipatan" > 10 Juta
     const maxTier = 10_000_000;
     const maxFee = 25_000;
     
@@ -144,11 +213,9 @@ export default function TransferFormPage() {
     return maxFee + calculateAdminMargin(remainder);
   }, []);
 
-  // Admin margin & total
   const adminMargin = useMemo(() => calculateAdminMargin(amount), [amount, calculateAdminMargin]);
   const totalAmount = useMemo(() => amount + adminMargin, [amount, adminMargin]);
 
-  // Filter banks based on search
   const filteredBanks = useMemo(() => {
     if (!searchBank) return BANK_LIST;
     return BANK_LIST.filter(bank => 
@@ -164,9 +231,10 @@ export default function TransferFormPage() {
     setSearchBank("");
     setShowBankDropdown(false);
     setDescription("Glory Cell");
+    setIsNewCustomer(false);
+    setHasSearched(false);
   };
 
-  // Format currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -176,7 +244,6 @@ export default function TransferFormPage() {
     }).format(value);
   };
 
-  // Handle bank config
   const handleBankConfig = useMemo(() => {
     const BankSeparators = BankSeparator(recipientBank);
     const selectedBank = bankConfig?.find((bank) => bank.bank_name.split("_").join(" ") === BankSeparators);
@@ -187,20 +254,30 @@ export default function TransferFormPage() {
     };
   }, [recipientBank, bankConfig]);
 
-  // Handle bank selection
   const handleSelectBank = (bank: string) => {
     setRecipientBank(bank);
     setSearchBank(bank);
     setShowBankDropdown(false);
   };
 
-  // Handle amount input
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
     setAmount(Number(value));
   };
 
-  // Handle submit
+  // Handle account number change
+  const handleAccountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    setRecipientAccount(value);
+    
+    // Reset other fields when account number changes
+    if (value !== recipientAccount) {
+      setRecipientName("");
+      setRecipientBank("");
+      setSearchBank("");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -208,7 +285,6 @@ export default function TransferFormPage() {
     try {
       const supabase = createClient();
       
-      // 1. Get user
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -217,20 +293,17 @@ export default function TransferFormPage() {
         return;
       }
       
-      // 2. Validation
       if (!recipientName || !recipientBank || !recipientAccount || amount <= 0 || !handleBankConfig.selectedBankId) {
         showAlert('warning', 'Mohon lengkapi semua data termasuk Bank Asal!');
         setIsSubmitting(false);
         return;
       }
 
-      // 3. Generate unique transfer ID
-      const locationPrefix = location === "Cikaret" ? "CKT" : "SKH";
+      const locationPrefix = location === "Cikaret" ? "CKT" : location === "Sukahati" ? "SKH" : 'INT';
       const timestamp = Date.now().toString();
       const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
       const transferId = `${locationPrefix}-${timestamp}-${randomStr}`;
 
-      // 4. Call RPC
       const { error } = await supabase.schema('glory').rpc('fn_process_bank_transactions_v2', {
         p_transfer_id: transferId,
         p_bank_id: handleBankConfig.selectedBankId,
@@ -245,7 +318,6 @@ export default function TransferFormPage() {
       if (error) {
         console.error("Transaction Failed:", error);
         
-        // Parse error messages for better UX
         let errorMessage = 'Transaksi gagal. Silakan coba lagi.';
         
         if (error.message.toLowerCase().includes('insufficient') || 
@@ -265,11 +337,9 @@ export default function TransferFormPage() {
         return;
       }
 
-      // 5. Success
       showAlert('success', 'Transfer berhasil diproses!');
       handleFormReset();
       
-      // Small delay before navigation for better UX
       setTimeout(() => {
         router.push(`print/${encodeURIComponent(transferId)}`);
       }, 800);
@@ -283,9 +353,11 @@ export default function TransferFormPage() {
     }
   };
 
+  // Determine if fields should be disabled
+  const fieldsDisabled = !isNewCustomer && hasSearched && !isFetchingCustomer;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 py-8 px-4">
-      {/* Custom Alert */}
       {alert && (
         <CustomAlert
           type={alert.type}
@@ -301,18 +373,15 @@ export default function TransferFormPage() {
             Transfer Antar Bank
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-lg font-light">
-            Isi formulir transfer dengan lengkap dan teliti
+            Masukkan nomor rekening untuk memulai
           </p>
         </div>
 
         {/* Form Card */}
         <div className="relative group animate-slide-up">
-          {/* Glow effect */}
           <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-500"></div>
           
-          {/* Card */}
           <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
-            {/* Decorative background */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-transparent dark:from-blue-400/10 dark:via-purple-400/10 rounded-full blur-3xl"></div>
             
             <form onSubmit={handleSubmit} className="relative p-8">
@@ -339,7 +408,7 @@ export default function TransferFormPage() {
                 {/* Transfer Pake Bank */}
                 <div className="group/field">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
-                     Transfer Pake Bank
+                    Transfer Pake Bank
                   </label>
                   <select
                     value={handleBankConfig?.selectedBankId || ''}
@@ -355,10 +424,43 @@ export default function TransferFormPage() {
                   </select>
                 </div>
 
-                {/* Bank Penerima - dengan search */}
+                {/* No Rekening - ALWAYS ENABLED */}
+                <div className="group/field relative">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
+                    ⭐ Nomor Rekening Penerima
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={recipientAccount}
+                      onChange={handleAccountChange}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 font-mono tracking-wider hover:border-blue-400 dark:hover:border-blue-500"
+                      placeholder="Masukkan nomor rekening..."
+                      required
+                    />
+                    {isFetchingCustomer && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                  </div>
+                  {isFetchingCustomer && (
+                    <p className="mt-2 text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                      <svg className="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      Mencari data pelanggan...
+                    </p>
+                  )}
+                </div>
+
+                {/* Bank Penerima - DISABLED when customer found */}
                 <div className="relative group/field">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
-                     Bank Penerima
+                    Bank Penerima
+                    {fieldsDisabled && (
+                      <span className="ml-2 text-xs text-green-600 dark:text-green-400">✓ Terisi otomatis</span>
+                    )}
                   </label>
                   <div className="relative">
                     <input
@@ -368,8 +470,9 @@ export default function TransferFormPage() {
                         setSearchBank(e.target.value);
                         setShowBankDropdown(true);
                       }}
-                      onFocus={() => setShowBankDropdown(true)}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 hover:border-blue-400 dark:hover:border-blue-500"
+                      onFocus={() => !fieldsDisabled && setShowBankDropdown(true)}
+                      disabled={fieldsDisabled}
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                       placeholder="Cari atau pilih bank..."
                       required
                     />
@@ -380,10 +483,8 @@ export default function TransferFormPage() {
                     </div>
                   </div>
                   
-                  {/* Dropdown Bank List */}
-                  {showBankDropdown && (
+                  {showBankDropdown && !fieldsDisabled && (
                     <>
-                      {/* Backdrop to close dropdown */}
                       <div 
                         className="fixed inset-0 z-10" 
                         onClick={() => setShowBankDropdown(false)}
@@ -415,32 +516,21 @@ export default function TransferFormPage() {
                   )}
                 </div>
 
-                {/* Nama Penerima */}
+                {/* Nama Penerima - DISABLED when customer found */}
                 <div className="group/field">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
-                     Nama Penerima
+                    Nama Penerima
+                    {fieldsDisabled && (
+                      <span className="ml-2 text-xs text-green-600 dark:text-green-400">✓ Terisi otomatis</span>
+                    )}
                   </label>
                   <input
                     type="text"
                     value={recipientName}
                     onChange={(e) => setRecipientName(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 hover:border-blue-400 dark:hover:border-blue-500"
+                    disabled={fieldsDisabled}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 hover:border-blue-400 dark:hover:border-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="Masukkan nama penerima"
-                    required
-                  />
-                </div>
-
-                {/* No Rekening */}
-                <div className="group/field">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
-                     Nomor Rekening
-                  </label>
-                  <input
-                    type="text"
-                    value={recipientAccount}
-                    onChange={(e) => setRecipientAccount(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-900 dark:text-slate-100 font-mono tracking-wider hover:border-blue-400 dark:hover:border-blue-500"
-                    placeholder="1234567890"
                     required
                   />
                 </div>
@@ -448,7 +538,7 @@ export default function TransferFormPage() {
                 {/* Berita */}
                 <div className="group/field">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
-                     Berita Transfer
+                    Berita Transfer
                   </label>
                   <input
                     type="text"
@@ -463,7 +553,7 @@ export default function TransferFormPage() {
                 {/* Nominal */}
                 <div className="group/field">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 group-hover/field:text-blue-600 dark:group-hover/field:text-blue-400 transition-colors">
-                     Nominal Transfer
+                    Nominal Transfer
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-semibold">

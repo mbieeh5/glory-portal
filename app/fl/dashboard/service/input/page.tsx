@@ -1,21 +1,34 @@
 'use client'
-import React, { useState, useEffect } from 'react'; // Jangan lupa useEffect
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, Phone, Smartphone, MapPin, MessageSquare, 
-  Save, X, Loader2, FileText, CheckCircle2, PhoneCall 
+  Save, X, Loader2, FileText, CheckCircle2, PhoneCall, 
+  Calendar
 } from 'lucide-react';
-import { GetNoNota } from "@/config/getNoNota"; // Pastikan path ini bener
+import { GetNoNota } from "@/config/getNoNota";
 import { createClient } from '@/lib/supabase/client';
 
 export default function InputDashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Initial State kosong dulu
+  // Helper function buat format datetime ke format input datetime-local
+  const getLocalDateTime = () => {
+    const now = new Date();
+    // Format: YYYY-MM-DDTHH:mm (format yang diterima input datetime-local)
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const [formData, setFormData] = useState({
-    invoice_id: 'Loading...', // Kasih placeholder
+    invoice_id: 'Loading...',
     customer_name: '',
+    entry_datetime: getLocalDateTime(), // Otomatis isi tanggal & jam sekarang
     customer_phone_number: '',
     recipient: '',
     complaint: '',
@@ -26,64 +39,62 @@ export default function InputDashboardPage() {
     service_location: '', 
   });
 
-  // 1. USE EFFECT PERTAMA: Buat ambil ID pas pertama kali load (GL-xxxx)
-useEffect(() => {
-  const initData = async () => {
-    const supabase = createClient();
+  // Ambil ID default dan user profile saat pertama kali load
+  useEffect(() => {
+    const initData = async () => {
+      const supabase = createClient();
 
-    // 1. Ambil ID default nota
-    const defaultID = await GetNoNota(null);
+      // Ambil ID default nota
+      const defaultID = await GetNoNota(null);
 
-    // 2. AMBIL USER ID dari session yang lagi login
-    const { data: { user } } = await supabase.auth.getUser();
+      // Ambil user yang lagi login
+      const { data: { user } } = await supabase.auth.getUser();
 
-    let username = 'Admin';
+      let username = 'Admin';
 
-    if (user) {
-      // 3. Ambil full_name dari tabel profiles yang ID-nya cocok
-      const { data: profileData, error } = await supabase
-        .schema('glory')
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id) // Filter biar gak ketuker sama user lain!
-        .maybeSingle();
+      if (user) {
+        // Ambil full_name dari tabel profiles
+        const { data: profileData, error } = await supabase
+          .schema('glory')
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
 
-      if (profileData?.full_name) {
-        username = profileData.full_name;
+        if (profileData?.full_name) {
+          username = profileData.full_name;
+        }
+        
+        if (error) console.error("Error ambil profil:", error);
       }
-      
-      if (error) console.error("Error ambil profil:", error);
-    }
 
-    setFormData(prev => ({
-      ...prev,
-      invoice_id: defaultID,
-      recipient: username
-    }));
-  };
+      setFormData(prev => ({
+        ...prev,
+        invoice_id: defaultID,
+        recipient: username
+      }));
+    };
 
-  initData();
-}, []);
+    initData();
+  }, []);
 
-  // 2. HANDLER KHUSUS LOKASI: Biar pas ganti lokasi, ID ikut ganti
+  // Handler khusus untuk perubahan lokasi service
   const handleLocationChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocation = e.target.value;
     
-    // Update state lokasi dulu biar UI responsif
     setFormData(prev => ({ ...prev, service_location: newLocation, invoice_id: "Updating..." }));
 
-    // Fetch nomor nota baru dari DB
+    // Fetch nomor nota baru berdasarkan lokasi
     const newNota = await GetNoNota(newLocation);
 
-    // Update state invoice_id
     setFormData(prev => ({
-        ...prev,
-        service_location: newLocation,
-        invoice_id: newNota
+      ...prev,
+      service_location: newLocation,
+      invoice_id: newNota
     }));
   };
 
-  // Handler buat inputan biasa
+  // Handler untuk input biasa
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -97,54 +108,84 @@ useEffect(() => {
     const supabase = createClient();
 
     try {
-      // LANGKAH 1: Simpan/Cek Customer
-      // Kita pake .upsert() biar kalau HP-nya udah ada, dia cuma update, kalau gak ada baru insert
-      const { data: custData, error: custError } = await supabase.schema('glory')
+      // LANGKAH 1: Cek apakah customer dengan nomor HP ini sudah ada
+      const { data: existingCustomer } = await supabase
+        .schema('glory')
         .from('services_customers')
-        .upsert({
-          customer_name: formData.customer_name,
-          customer_phone_number: formData.customer_phone_number,
-        })
-        .select('customer_id')
-        .single();
-      if (custError) throw custError;
+        .select('customer_id, customer_name')
+        .eq('customer_phone_number', formData.customer_phone_number)
+        .maybeSingle();
 
-      // LANGKAH 2: Simpan Transaksi pake customer_id dari Langkah 1
+      let customerId: string;
+
+      if (existingCustomer) {
+        // Customer sudah ada, update nama kalau beda
+        if (existingCustomer.customer_name !== formData.customer_name) {
+          const { error: updateError } = await supabase
+            .schema('glory')
+            .from('services_customers')
+            .update({ customer_name: formData.customer_name })
+            .eq('customer_id', existingCustomer.customer_id);
+          
+          if (updateError) throw updateError;
+        }
+        customerId = existingCustomer.customer_id;
+      } else {
+        // Customer baru, insert data
+        const { data: newCustomer, error: insertError } = await supabase
+          .schema('glory')
+          .from('services_customers')
+          .insert({
+            customer_name: formData.customer_name,
+            customer_phone_number: formData.customer_phone_number,
+          })
+          .select('customer_id')
+          .single();
+
+        if (insertError) throw insertError;
+        customerId = newCustomer.customer_id;
+      }
+      if(!formData.invoice_id.includes("GPS-")){
+        alert('silahkan Ulangi kembali')
+        return handleReset();
+      }
+
+      // LANGKAH 2: Simpan transaksi service
       const { error: transError } = await supabase
         .schema('glory')
         .from('services_transactions')
         .insert([{
           invoice_id: formData.invoice_id,
-          customer_id: custData.customer_id,
+          customer_id: customerId, // Pake customerId dari langkah sebelumnya
+          entry_datetime: new Date(formData.entry_datetime).toISOString(), // Convert ke ISO string
           recipient_name: formData.recipient,
           phone_brand: formData.phone_brand,
-          phone_imei: formData.imei,
+          phone_imei: formData.imei || null, // Null kalo kosong
           complaint: formData.complaint,
           phisical_condition: formData.phisical_condition,
-          initial_price: formData.initial_price,
+          initial_price: parseFloat(formData.initial_price) || 0, // Convert ke number
           location: formData.service_location,
           status: 'in_process'
         }]);
 
       if (transError) throw transError;
 
-      // Sukses!
+      // Tampilkan success message
       setShowSuccess(true);
       setTimeout(() => {
-          setShowSuccess(false);
-          handleReset();
+        setShowSuccess(false);
+        handleReset();
       }, 2000);
 
     } catch (error) {
-      console.error("Gagal nyimpen:", error);
-      alert("Waduh error nih pas simpen!");
+      console.error("Error saat menyimpan data:", error);
+      alert("Terjadi kesalahan saat menyimpan data!");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleReset = async () => {
-    // Pas reset, balikin ID ke mode default (GL)
     const defaultID = await GetNoNota(null);
     
     setFormData(prev => ({
@@ -152,12 +193,13 @@ useEffect(() => {
       invoice_id: defaultID,
       customer_name: '',
       customer_phone_number: '',
+      entry_datetime: getLocalDateTime(), // Reset ke waktu sekarang
       complaint: '',
       phisical_condition: '',
       phone_brand: '',
       imei: '',
       initial_price: '',
-      service_location: '', // Balik ke kosong
+      service_location: '',
     }));
   };
 
@@ -192,7 +234,7 @@ useEffect(() => {
           transition={{ delay: 0.1 }}
           className="mb-6 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
               Invoice Number
             </span>
@@ -200,11 +242,11 @@ useEffect(() => {
               {formData.invoice_id}
             </span>
           </div>
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              Nama Penerima
+              Penerima
             </span>
-            <span className="text-xl font-bold text-blue-600 dark:text-blue-400 font-mono">
+            <span className="text-lg font-semibold text-slate-900 dark:text-white">
               {formData.recipient}
             </span>
           </div>
@@ -218,6 +260,25 @@ useEffect(() => {
           className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
         >
           <form onSubmit={handleSubmit} className="p-6 sm:p-8">
+            {/* Entry DateTime Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                Tanggal & Waktu Masuk
+              </h2>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                <input
+                  type="datetime-local"
+                  name="entry_datetime"
+                  value={formData.entry_datetime}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
             {/* Customer Information */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
@@ -250,23 +311,22 @@ useEffect(() => {
                   <div className="relative">
                     <PhoneCall className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
-                      type="phone"
+                      type="tel"
                       name="customer_phone_number"
                       value={formData.customer_phone_number}
                       onChange={handleChange}
                       required
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white"
-                      placeholder="Contoh: 0812..."
+                      placeholder="Contoh: 081234567890"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Device Information (Sama kayak code lu, gua skip biar ringkas) */}
-             <div className="mb-8">
-               {/* ... Bagian Device Information lu copas aja yg lama, aman ... */}
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            {/* Device Information */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                 <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Informasi Device
               </h2>
@@ -288,9 +348,10 @@ useEffect(() => {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    IMEI
+                    IMEI (Opsional)
                   </label>
                   <div className="relative">
                     <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -300,7 +361,7 @@ useEffect(() => {
                       value={formData.imei}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white"
-                      placeholder="15 digit IMEI (optional)"
+                      placeholder="15 digit IMEI"
                       maxLength={15}
                     />
                   </div>
@@ -314,11 +375,10 @@ useEffect(() => {
                 <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 Informasi Service
               </h2>
-              <div className="grid grid-cols-1 gap-4">
-                {/* ... Complaint & Phys Condition sama aja ... */}
-                 <div>
+              <div className="space-y-4">
+                <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Kondisi *
+                    Keluhan/Kerusakan *
                   </label>
                   <textarea
                     name="complaint"
@@ -327,9 +387,10 @@ useEffect(() => {
                     required
                     rows={4}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white resize-none"
-                    placeholder="Deskripsikan Kondisi atau kerusakan..."
+                    placeholder="Deskripsikan keluhan atau kerusakan..."
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Kondisi Fisik *
@@ -341,12 +402,11 @@ useEffect(() => {
                     required
                     rows={4}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white resize-none"
-                    placeholder="Deskripsikan Kondisi Fisik Handphone..."
+                    placeholder="Deskripsikan kondisi fisik handphone (lecet, retak, dll)..."
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* --- BAGIAN PENTING: LOKASI SERVICE --- */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Lokasi Service *
@@ -356,9 +416,9 @@ useEffect(() => {
                       <select
                         name="service_location"
                         value={formData.service_location}
-                        onChange={handleLocationChange} // <--- GANTI JADI INI
+                        onChange={handleLocationChange}
                         required
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white appearance-none cursor-pointer"
+                        className="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white appearance-none cursor-pointer"
                       >
                         <option value="">Pilih lokasi...</option>
                         <option value="Sukahati">Sukahati</option>
@@ -372,29 +432,25 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* Estimasi Harga */}
                   <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Estimasi Harga *
+                    </label>
                     <div className="relative">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                          Estimasi Harga *
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
-                            Rp
-                          </span>
-                          <input
-                            type="number"
-                            name="initial_price"
-                            value={formData.initial_price}
-                            onChange={handleChange}
-                            required
-                            min="0"
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white"
-                            placeholder="0"
-                          />
-                        </div>
-                      </div>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
+                        Rp
+                      </span>
+                      <input
+                        type="number"
+                        name="initial_price"
+                        value={formData.initial_price}
+                        onChange={handleChange}
+                        required
+                        min="0"
+                        step="1000"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all text-slate-900 dark:text-white"
+                        placeholder="0"
+                      />
                     </div>
                   </div>
                 </div>
@@ -427,6 +483,7 @@ useEffect(() => {
                   </>
                 )}
               </motion.button>
+
               <motion.button
                 type="button"
                 onClick={handleReset}
@@ -436,7 +493,7 @@ useEffect(() => {
                 className="px-6 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X className="w-5 h-5" />
-                Reset
+                Reset Form
               </motion.button>
             </div>
           </form>
@@ -448,7 +505,7 @@ useEffect(() => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed top-6 right-6 mt-12 bg-green-500 dark:bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3"
+            className="fixed bottom-6 right-6 bg-green-500 dark:bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 z-50"
           >
             <CheckCircle2 className="w-6 h-6" />
             <span className="font-semibold">Transaksi berhasil disimpan!</span>
