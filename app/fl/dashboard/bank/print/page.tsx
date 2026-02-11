@@ -183,7 +183,7 @@ export default function TransferFormPage() {
     // Debounce untuk menghindari terlalu banyak query
     const timeoutId = setTimeout(() => {
       fetchCustomerData();
-    }, 500);
+    }, 800);
 
     return () => clearTimeout(timeoutId);
   }, [recipientAccount, hasSearched]);

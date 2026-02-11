@@ -1,3 +1,4 @@
+import { bankMenus, captainMenus, serviceMenus } from "@/config/menu";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -39,7 +40,45 @@ export async function updateSession(request: NextRequest) {
   // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
+  const currentPath = request.nextUrl.pathname
 
+  // 1. Filter Path: Only for proceed if the path start With "/fl"
+  if(!currentPath.startsWith('/fl')) {
+    return supabaseResponse;
+  }
+
+  // 2. Auth Check: Must Login for /fl
+  if(!user){
+    return NextResponse.redirect(new URL("/auth/login", request.url));
+  }
+
+  // 3. RBAC Logic
+  // Gabungin semua menu jadi satu object besar
+  const allMenusByRole = {
+    frontliner: [...serviceMenus.frontliner, ...bankMenus.frontliner, ...captainMenus.frontliner],
+    moderator: [...serviceMenus.moderator, ...bankMenus.moderator, ...captainMenus.moderator],
+    admin: [...serviceMenus.admin, ...bankMenus.admin, ...captainMenus.admin],
+  };
+
+  const userRole = (user.app_metadata?.role?.toLowerCase() || 'user') as keyof typeof allMenusByRole;
+
+  // Daftar path "Sakti" (Boleh diakses semua role yang sudah login)
+  const commonPaths = ['/fl/dashboard', '/fl/dashboard/settings'];
+
+  // Ambil semua href yang dibolehin buat role si user dari Master List
+  const allowedRoutes = allMenusByRole[userRole]?.map(item => item.href) || [];
+
+  // Cek: Apakah path sekarang ada di commonPaths ATAU ada di daftar menu rolenya?
+  const isAllowed = commonPaths.includes(currentPath) || allowedRoutes.some(path => currentPath.startsWith(path));
+
+  if (!isAllowed) {
+    // Kalau nekat akses yang bukan haknya, lempar ke 403 atau balik ke dashboard
+    const url = request.nextUrl.clone();
+    url.pathname = "/403"; 
+    return NextResponse.rewrite(url);
+  }
+  /**
+   * 
   if (
     request.nextUrl.pathname !== "/" &&
     !user &&
@@ -52,7 +91,8 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
-
+  
+  */
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

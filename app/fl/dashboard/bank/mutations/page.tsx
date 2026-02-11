@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function MutasiPage() {
   const supabase = await createClient();
   try {
+    const today = new Date(new Date().setHours(0,0,0,0)).toISOString();
     // 1. Fetch Data Transaksi + Join Customer + Join Config Bank
     const { data: rawData, error } = await supabase
       .schema("glory") // Wajib panggil schema 'glory'
@@ -23,8 +24,8 @@ export default async function MutasiPage() {
           bank_name
         )
       `)
+      .or(`created_at.gte.${today},status.eq.pending`)
       .order("created_at", { ascending: false }) // Urutkan dari yang terbaru
-      .gte('created_at',  new Date(new Date().setHours(0,0,0,0)).toISOString())
 
     if (error) {
       console.error("🔥 Supabase Error:", error.message);
