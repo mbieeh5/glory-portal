@@ -286,7 +286,7 @@ export default function DashboardShell({
         </div>
 
         {/* CONTENT CHILDREN */}
-        <div className="p-4 md:p-8 md:pt-10 w-full mx-auto animate-in fade-in duration-500 overflow-x-hidden">
+        <div className="p-4 md:p-8 md:pt-10 w-full mx-auto animate-in fade-in background-blur-xl duration-500 overflow-x-hidden">
           {children}
         </div>
       </main>

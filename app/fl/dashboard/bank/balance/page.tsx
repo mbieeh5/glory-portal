@@ -230,7 +230,7 @@ export default function BalancePage() {
   }, [transferFrom, banks]);
 
   if (isLoading) {
-      return <div className="min-h-screen flex items-center justify-center bg-slate-50"><p className="animate-pulse text-slate-500">Memuat Saldo...</p></div>
+      return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-glate-950"><p className="animate-pulse text-slate-500">Memuat Saldo...</p></div>
   }
 
   return (
