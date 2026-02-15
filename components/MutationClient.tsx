@@ -102,12 +102,15 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
     {
       accessorKey: "customer_name",
       header: "Pelanggan",
-      cell: ({ row }) => (
+      cell: ({ row }) => {
+        const originalRow = row.original;
+
+        return (
         <div>
-          <div className="font-bold text-sm text-slate-900 dark:text-slate-100">{row.getValue("customer_name")}</div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{row.original.customer_bank_account} ({row.original.customer_bank_name})</div>
+          <div className="font-bold text-sm text-slate-900 dark:text-slate-100">{row.getValue('customer_name')}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{originalRow.customer_bank_account} ({originalRow.customer_bank_name})</div>
         </div>
-    )
+    )}
     },
     {
       accessorKey: "bank_name",

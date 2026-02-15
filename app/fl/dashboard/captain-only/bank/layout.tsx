@@ -3,7 +3,7 @@
 import React, { ReactNode, Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, PieChart, ArrowLeft, Loader2 } from "lucide-react";
+import { LayoutDashboard, PieChart, ArrowLeft } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import LoadingScreen from "@/components/LoadingScreen";
