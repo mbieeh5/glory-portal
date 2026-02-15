@@ -42,7 +42,7 @@ export interface BankTransaction {
 }
 
 interface MutationsClientProps {
-  initialData?: BankTransaction[]; // Bikin optional
+  initialData?: BankTransaction[];
 }
 
 // --- UTILS ---
@@ -50,18 +50,18 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style
 const formatDate = (date: string | Date) => new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(date));
 
 // --- BADGE ---
+// Gua tweak dikit opacity-nya biar di dark mode ga terlalu "neon"
 const StatusBadge = ({ status }: { status: StatusBankEnum }) => {
   const styles: Record<string, string> = {
-    [StatusBankEnum.COMPLETED]: "bg-emerald-100 text-emerald-700 border-emerald-300",
-    [StatusBankEnum.PENDING]: "bg-amber-100 text-amber-700 border-amber-300",
-    [StatusBankEnum.CANCELED]: "bg-slate-100 text-slate-700 border-slate-300",
+    [StatusBankEnum.COMPLETED]: "bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
+    [StatusBankEnum.PENDING]: "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800",
+    [StatusBankEnum.CANCELED]: "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
   };
   return <span className={`px-2 py-1 rounded text-xs font-medium border ${styles[status] || styles['failed']}`}>{status}</span>;
 };
 
 
 export default function MutationsClient({ initialData = [] }: MutationsClientProps) {
-  // 🛡️ SAFETY FIRST: Default ke array kosong biar gak "not iterable"
   const safeInitialData = Array.isArray(initialData) ? initialData : [];
 
   const router = useRouter();
@@ -84,45 +84,48 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
     {
       accessorKey: "transfer_id",
       header: ({ column }) => (
-        <button className="flex items-center gap-2 hover:text-blue-600" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <button className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           ID <ArrowUpDown className="w-3 h-3" />
         </button>
       ),
-      cell: ({ row }) => <div className="font-mono text-xs font-bold">{row.getValue("transfer_id")}</div>,
+      cell: ({ row }) => <div className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{row.getValue("transfer_id")}</div>,
     },
     {
       accessorKey: "entry_datetime",
       header: ({column}) => (
-        <button className="flex items-center gap-2 hover:text-blue-600" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <button className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Waktu <ArrowUpDown className="w-3 h-3"/>
         </button>
       ),
-      cell: ({ row }) => <div className="text-xs">{formatDate(row.getValue("entry_datetime"))}</div>,
+      cell: ({ row }) => <div className="text-xs text-slate-600 dark:text-slate-400">{formatDate(row.getValue("entry_datetime"))}</div>,
     },
     {
       accessorKey: "customer_name",
       header: "Pelanggan",
-      cell: ({ row }) => (
+      cell: ({ row }) => {
+        const originalRow = row.original;
+
+        return (
         <div>
-          <div className="font-bold text-sm">{row.getValue("customer_name")}</div>
-          <div className="text-xs text-slate-500 font-mono">{row.original.customer_bank_account} ({row.original.customer_bank_name})</div>
+          <div className="font-bold text-sm text-slate-900 dark:text-slate-100">{row.getValue('customer_name')}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{originalRow.customer_bank_account} ({originalRow.customer_bank_name})</div>
         </div>
-    )
+    )}
     },
     {
       accessorKey: "bank_name",
       header: ({column}) => (
-        <button className="flex items-center gap-2 hover:text-blue-600" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+        <button className="flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
           Sumber <ArrowUpDown className="w-3 h-3"/>
         </button>
       ),
-      cell: ({ row }) => <div className="text-xs font-medium">{row.getValue("bank_name")}</div>,
+      cell: ({ row }) => <div className="text-xs font-medium text-slate-700 dark:text-slate-300">{row.getValue("bank_name")}</div>,
     },
     {
       accessorKey: "location",
       header: "Lok",
       cell: ({ row }) => (
-        <div className="flex items-center gap-1 text-xs">
+        <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
           <MapPin className="w-3 h-3" /> {row.getValue("location")}
         </div>
       ),
@@ -130,7 +133,7 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
     {
       accessorKey: "amount",
       header: "Nominal",
-      cell: ({ row }) => <div className="font-bold font-mono text-slate-800">{formatCurrency(row.getValue("amount"))}</div>,
+      cell: ({ row }) => <div className="font-bold font-mono text-slate-800 dark:text-slate-200">{formatCurrency(row.getValue("amount"))}</div>,
     },
     {
       accessorKey: "status",
@@ -146,7 +149,7 @@ export default function MutationsClient({ initialData = [] }: MutationsClientPro
             setEditingTransaction(row.original);
             setNewStatus(row.original.status);
           }}
-          className="p-1.5 hover:bg-slate-200 rounded text-slate-500"
+          className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded text-slate-500 dark:text-slate-400 transition-colors"
         >
           <Edit className="w-4 h-4" />
         </button>
@@ -159,11 +162,9 @@ const filteredData = useMemo(() => {
     if (!Array.isArray(data)) return [];
 
     let filtered = [...data];
-    // 🏷️ BARU filter lokasi & status
     if (locationFilter !== "all") filtered = filtered.filter((t) => t.location === locationFilter);
     if (statusFilter !== "all") filtered = filtered.filter((t) => t.status === statusFilter);
     
-    // 🔍 SEARCH DULU (paling prioritas)
     if (globalFilter) {
       const lower = globalFilter.toLowerCase().trim();
       filtered = filtered.filter(t => 
@@ -173,7 +174,6 @@ const filteredData = useMemo(() => {
         t.transfer_id.toLowerCase().includes(lower)
       );
     }
-    
     
     return filtered;
   }, [data, locationFilter, statusFilter, globalFilter]);
@@ -198,15 +198,15 @@ const filteredData = useMemo(() => {
     initialState: { pagination: { pageSize: 10 } },
   });
 
-  // --- ACTION (No Swal) ---
+  // --- ACTION ---
   const handleSave = () => {
     if (!editingTransaction) return;
     startTransition(async () => {
       try {
         await updateTransactionStatus(editingTransaction.id, newStatus);
         setEditingTransaction(null);
-        router.refresh(); // Refresh Data Server
-        alert("Status berhasil diupdate!"); // Simple Alert pengganti Swal
+        router.refresh();
+        alert("Status berhasil diupdate!");
       } catch (e) {
         console.error(e)
         alert("Gagal update status!");
@@ -215,45 +215,53 @@ const filteredData = useMemo(() => {
   };
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen">
+    <div className="p-4 bg-slate-50 dark:bg-zinc-950 min-h-screen transition-colors duration-300">
       {/* HEADER & STATS */}
       <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-start">
         <div>
-          <h1 className="text-2xl font-light text-slate-800">Mutasi Transaksi</h1>
-          <p className="text-slate-500 text-sm">Monitor semua aliran dana</p>
+          <h1 className="text-2xl font-light text-slate-800 dark:text-slate-100">Mutasi Transaksi</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Monitor semua aliran dana</p>
         </div>
         
         {/* Simple Stats Cards */}
         <div className="flex gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-                <div className="text-xs text-slate-500 uppercase font-bold">Cikaret (OUT)</div>
-                <div className="text-lg font-mono font-bold text-purple-600">{formatCurrency(stats.cikaret.total)}</div>
-                <div className="text-xs text-slate-400">{stats.cikaret.count} Transaksi</div>
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-zinc-800 transition-colors">
+                <div className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Cikaret (OUT)</div>
+                <div className="text-lg font-mono font-bold text-purple-600 dark:text-purple-400">{formatCurrency(stats.cikaret.total)}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500">{stats.cikaret.count} Transaksi</div>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-                <div className="text-xs text-slate-500 uppercase font-bold">Sukahati (OUT)</div>
-                <div className="text-lg font-mono font-bold text-emerald-600">{formatCurrency(stats.sukahati.total)}</div>
-                <div className="text-xs text-slate-400">{stats.sukahati.count} Transaksi</div>
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-zinc-800 transition-colors">
+                <div className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold">Sukahati (OUT)</div>
+                <div className="text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.sukahati.total)}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500">{stats.sukahati.count} Transaksi</div>
             </div>
         </div>
       </div>
 
       {/* FILTERS */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-4 flex gap-3 flex-wrap">
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-zinc-800 mb-4 flex gap-3 flex-wrap transition-colors">
         <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400"/>
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 dark:text-zinc-500"/>
             <input 
                 value={globalFilter} onChange={e => setGlobalFilter(e.target.value)}
                 placeholder="Cari..." 
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
             />
         </div>
-        <select value={locationFilter} onChange={e => setLocationFilter(e.target.value)} className="px-3 py-2 bg-slate-50 border rounded text-sm">
+        <select 
+            value={locationFilter} 
+            onChange={e => setLocationFilter(e.target.value)} 
+            className="px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded text-sm text-slate-700 dark:text-slate-200 focus:outline-none transition-colors"
+        >
             <option value="all">Semua Lokasi</option>
             <option value="Cikaret">Cikaret</option>
             <option value="Sukahati">Sukahati</option>
         </select>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="px-3 py-2 bg-slate-50 border rounded text-sm">
+        <select 
+            value={statusFilter} 
+            onChange={e => setStatusFilter(e.target.value)} 
+            className="px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded text-sm text-slate-700 dark:text-slate-200 focus:outline-none transition-colors"
+        >
             <option value="all">Semua Status</option>
             <option value="completed">Selesai</option>
             <option value="pending">Pending</option>
@@ -262,10 +270,10 @@ const filteredData = useMemo(() => {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-slate-200 dark:border-zinc-800 overflow-hidden transition-colors">
         <div className="overflow-x-auto">
             <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs">
+                <thead className="bg-slate-50 dark:bg-zinc-800/50 border-b border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 uppercase text-xs">
                     {table.getHeaderGroups().map(headerGroup => (
                         <tr key={headerGroup.id}>
                             {headerGroup.headers.map(header => (
@@ -276,12 +284,12 @@ const filteredData = useMemo(() => {
                         </tr>
                     ))}
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                     {table.getRowModel().rows.length === 0 ? (
-                        <tr><td colSpan={columns.length} className="px-6 py-8 text-center text-slate-500">Tidak ada data ditemukan.</td></tr>
+                        <tr><td colSpan={columns.length} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">Tidak ada data ditemukan.</td></tr>
                     ) : (
                         table.getRowModel().rows.map(row => (
-                            <tr key={row.id} className="hover:bg-slate-50 transition-colors">
+                            <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
                                 {row.getVisibleCells().map(cell => (
                                     <td key={cell.id} className="px-6 py-3">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -295,38 +303,68 @@ const filteredData = useMemo(() => {
         </div>
         
         {/* PAGINATION SIMPLE */}
-        <div className="px-6 py-4 border-t border-slate-200 flex justify-between items-center">
-            <span className="text-sm text-slate-500">
+        <div className="px-6 py-4 border-t border-slate-200 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-zinc-900 transition-colors">
+            <span className="text-sm text-slate-500 dark:text-slate-400">
                 Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
             </span>
             <div className="flex gap-2">
-                <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-                <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+                <button 
+                    onClick={() => table.previousPage()} 
+                    disabled={!table.getCanPreviousPage()} 
+                    className="px-3 py-1 border border-slate-200 dark:border-zinc-700 rounded text-slate-600 dark:text-slate-300 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                    Prev
+                </button>
+                <button 
+                    onClick={() => table.nextPage()} 
+                    disabled={!table.getCanNextPage()} 
+                    className="px-3 py-1 border border-slate-200 dark:border-zinc-700 rounded text-slate-600 dark:text-slate-300 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                    Next
+                </button>
             </div>
         </div>
       </div>
 
-      {/* MODAL UPDATE (No Library) */}
+      {/* MODAL UPDATE */}
       <AnimatePresence>
         {editingTransaction && (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
-                    <h3 className="text-lg font-bold mb-4">Edit Status</h3>
-                    <div className="mb-4 text-sm text-slate-600">
-                        Ubah status untuk <span className="font-mono font-bold text-slate-900">{editingTransaction.transfer_id}</span>?
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <motion.div 
+                    initial={{scale:0.95, opacity:0}} 
+                    animate={{scale:1, opacity:1}} 
+                    exit={{scale:0.95, opacity:0}} 
+                    className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl max-w-sm w-full p-6 border border-slate-100 dark:border-zinc-800"
+                >
+                    <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white">Edit Status</h3>
+                    <div className="mb-4 text-sm text-slate-600 dark:text-slate-400">
+                        Ubah status untuk <span className="font-mono font-bold text-slate-900 dark:text-slate-200">{editingTransaction.transfer_id}</span>?
                         <br/>
-                        <span className="text-xs text-red-500 mt-1 block">*Saldo akan otomatis disesuaikan.</span>
+                        <span className="text-xs text-red-500 dark:text-red-400 mt-1 block">*Saldo akan otomatis disesuaikan.</span>
                     </div>
                     
-                    <select value={newStatus} onChange={e => setNewStatus(e.target.value as StatusBankEnum)} className="w-full p-2 border rounded mb-6">
+                    <select 
+                        value={newStatus} 
+                        onChange={e => setNewStatus(e.target.value as StatusBankEnum)} 
+                        className="w-full p-2 border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-slate-900 dark:text-slate-200 rounded mb-6 focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
                         <option value="completed">Selesai (Completed)</option>
                         <option value="pending">Pending</option>
                         <option value="canceled">Batal (Canceled)</option>
                     </select>
 
                     <div className="flex gap-3">
-                        <button onClick={() => setEditingTransaction(null)} className="flex-1 py-2 border rounded hover:bg-slate-50">Batal</button>
-                        <button onClick={handleSave} disabled={isPending} className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300">
+                        <button 
+                            onClick={() => setEditingTransaction(null)} 
+                            className="flex-1 py-2 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                            Batal
+                        </button>
+                        <button 
+                            onClick={handleSave} 
+                            disabled={isPending} 
+                            className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-500 disabled:bg-blue-300 dark:disabled:bg-blue-900 transition-colors"
+                        >
                             {isPending ? "Menyimpan..." : "Simpan"}
                         </button>
                     </div>
