@@ -87,7 +87,7 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     }
 
     const { data: transactionData, error: transactionError } = await transactionQuery
-        .order('created_at', { ascending: false })
+        .order('entry_datetime', { ascending: false })
         .range(offset, offset + limit - 1);
 
     if (transactionError || !transactionData) {
@@ -105,7 +105,8 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
             .schema(globalSchema)
             .from('services_spareparts')
             .select('invoice_id')
-            .ilike('sparepart_name', `%${params.search.trim()}%`);
+            .ilike('sparepart_name', `%${params.search.trim()}%`)
+            .order('entry_datetime', { ascending: false });
         
         if (matchedSpareparts) {
             sparepartMatchedInvoices = matchedSpareparts.map(sp => sp.invoice_id);

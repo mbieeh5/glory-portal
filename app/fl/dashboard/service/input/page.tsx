@@ -156,7 +156,7 @@ export default function InputDashboardPage() {
         .from('services_transactions')
         .insert([{
           invoice_id: formData.invoice_id,
-          customer_id: customerId, // Pake customerId dari langkah sebelumnya
+          customer_id: customerId,
           entry_datetime: new Date(formData.entry_datetime).toISOString(), // Convert ke ISO string
           recipient_name: formData.recipient,
           phone_brand: formData.phone_brand,
