@@ -50,6 +50,7 @@ interface Props {
 
 interface SparepartsUlala {
   id: number,
+  sparepart_id: number,
   sparepart_name: string,
   sparepart_price: number,
 }
@@ -77,7 +78,6 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
       setIsSearching(prev => ({ ...prev, [i]: true}))
 
       const results = await searchSpareparts(query);
-      console.log({query, results})
       setSearchResult(prev => ({...prev, [i]: results}))
       setIsSearching(prev => ({...prev, [i]: false}))
   }
@@ -87,6 +87,7 @@ export default function UpdateInvoiceClient({ initialData, invoiceId }: Props) {
       updatedSpareparts[index] = {
         ...updatedSpareparts[index],
         id: item.id,
+        sparepart_id: item.id,
         sparepart_name: item.sparepart_name,
         sparepart_price: item.sparepart_price 
       }
@@ -169,8 +170,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   const formDataObj = new FormData(currentForm);
   
   // 2. Tambahin data spareparts
-  formDataObj.append('spareparts', JSON.stringify(formData.spareparts || []));
-
+  formDataObj.append('spareparts', JSON.stringify(formData.spareparts || [])); 
   startTransition(async () => {
     const result = await updateInvoice(formDataObj);
     if (result.success) {

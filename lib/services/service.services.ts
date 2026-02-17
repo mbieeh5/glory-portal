@@ -103,13 +103,14 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     if (params.search && params.search.trim() !== '') {
         const { data: matchedSpareparts } = await supabase
             .schema(globalSchema)
-            .from('services_spareparts')
-            .select('invoice_id')
-            .ilike('sparepart_name', `%${params.search.trim()}%`)
+            .from('services_sparepart_items')
+            .select(`transaction_id, 
+                services_parent_sparepart!inner(sparepart_name)`)
+            .ilike('service_parent_sparepart.sparepart_name', `%${params.search.trim()}%`)
             .order('entry_datetime', { ascending: false });
         
         if (matchedSpareparts) {
-            sparepartMatchedInvoices = matchedSpareparts.map(sp => sp.invoice_id);
+            sparepartMatchedInvoices = matchedSpareparts.map(sp => sp.transaction_id);
         }
     }
 
@@ -150,7 +151,8 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
 
     // Fetch related data (Parallel biar cepet)
     const [sparepartResult, customersResult] = await Promise.all([
-        supabase.schema(globalSchema).from('services_spareparts').select('*').in('invoice_id', invoiceIds).order('created_at', { ascending: false }),
+        supabase.schema(globalSchema).from('services_sparepart_items').select(`*, sercices_parent_sparepart(sparepart_name)`)
+        .in('transaction_id', filteredTransactionData.map(t => t.id)).order('created_at', { ascending: false }),
         supabase.schema(globalSchema).from('services_customers').select('*').in('customer_id', customerIds)
     ]);
 
@@ -161,7 +163,15 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
 
     // Merge logic
     const mergedData: ServiceTransaction[] = filteredTransactionData.map(transaction => {
-        const spareparts = sparepartResult.data?.filter(part => part.invoice_id === transaction.invoice_id) || [];
+        const rawItems = sparepartResult.data?.filter(item => item.transaction_id === transaction.id) || [];
+        
+        const spareparts = rawItems.map(item => ({
+            id: item.id,
+            sparepart_id: item.sparepart_id,
+            sparepart_name: item.services_parent_sparepart?.sparepart_name || "Si Tanpa Nama",
+            price_at_transaction: item.price_at_transaction || 0,
+            warranty_at_transaction: item.warranty_at_transaction || null
+        }))
         const customer = customersResult.data?.find(cust => cust.customer_id === transaction.customer_id);
 
         return {
