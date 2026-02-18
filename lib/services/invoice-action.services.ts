@@ -29,8 +29,8 @@ export async function getInvoiceData(invoiceId: string): Promise<ServiceTransact
         // 2. Fetch spareparts
         const { data: spareparts, error: sparepartsError } = await supabase
             .schema(globalSchema)
-            .from('services_spareparts')
-            .select('*')
+            .from('v_all_service_spareparts')
+            .select(`*`)
             .eq('invoice_id', invoiceId);
         
         if (sparepartsError) {
@@ -52,7 +52,12 @@ export async function getInvoiceData(invoiceId: string): Promise<ServiceTransact
         // 4. Merge data
         return {
             ...transaction,
-            spareparts: spareparts || [],
+            spareparts: (spareparts || []).map(sp => ({
+              id:sp.id,
+              sparepart_name: sp.sparepart_name,
+              sparepart_price: sp.sparepart_price,
+              sparepart_warranty: sp.warranty_at_transaction,
+            })),
             customers_info: customer || null
         } as ServiceTransaction;
 
