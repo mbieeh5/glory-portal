@@ -226,7 +226,7 @@ const ExpandedRowContent = ({ row }: { row: ServiceTransaction }) => {
                     </div>
                     <div className="flex items-start">
                       <span className="text-gray-500 dark:text-gray-400 w-20 flex-shrink-0">Harga</span>
-                      <span className="font-bold text-orange-600 dark:text-orange-400">: Rp {part.sparepart_price.toLocaleString('id-ID')}</span>
+                      <span className="font-bold text-orange-600 dark:text-orange-400">: Rp {part.sparepart_price?.toLocaleString('id-ID')}</span>
                     </div>
                     {part.sparepart_warranty && (
                       <div className="flex items-start">

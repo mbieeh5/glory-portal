@@ -87,7 +87,7 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     }
 
     const { data: transactionData, error: transactionError } = await transactionQuery
-        .order('created_at', { ascending: false })
+        .order('entry_datetime', { ascending: false })
         .range(offset, offset + limit - 1);
 
     if (transactionError || !transactionData) {
@@ -103,12 +103,14 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     if (params.search && params.search.trim() !== '') {
         const { data: matchedSpareparts } = await supabase
             .schema(globalSchema)
-            .from('services_spareparts')
-            .select('invoice_id')
-            .ilike('sparepart_name', `%${params.search.trim()}%`);
+            .from('services_sparepart_items')
+            .select(`transaction_id, 
+                services_parent_sparepart!inner(sparepart_name)`)
+            .ilike('service_parent_sparepart.sparepart_name', `%${params.search.trim()}%`)
+            .order('entry_datetime', { ascending: false });
         
         if (matchedSpareparts) {
-            sparepartMatchedInvoices = matchedSpareparts.map(sp => sp.invoice_id);
+            sparepartMatchedInvoices = matchedSpareparts.map(sp => sp.transaction_id);
         }
     }
 
@@ -149,7 +151,8 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
 
     // Fetch related data (Parallel biar cepet)
     const [sparepartResult, customersResult] = await Promise.all([
-        supabase.schema(globalSchema).from('services_spareparts').select('*').in('invoice_id', invoiceIds).order('created_at', { ascending: false }),
+        supabase.schema(globalSchema).from('v_all_service_spareparts').select(`*`)
+        .in('invoice_id', invoiceIds).order('created_at', { ascending: false }),
         supabase.schema(globalSchema).from('services_customers').select('*').in('customer_id', customerIds)
     ]);
 
@@ -160,7 +163,15 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
 
     // Merge logic
     const mergedData: ServiceTransaction[] = filteredTransactionData.map(transaction => {
-        const spareparts = sparepartResult.data?.filter(part => part.invoice_id === transaction.invoice_id) || [];
+        const rawItems = sparepartResult.data?.filter(item => item.invoice_id === transaction.invoice_id) || [];
+        
+        const spareparts = rawItems.map(item => ({
+            id: item.id,
+            sparepart_id: item.sparepart_id || item.id,
+            sparepart_name: item.sparepart_name || "Si Tanpa Nama",
+            sparepart_price: item.sparepart_price || 0,
+            sparepart_warranty: item.sparepart_warranty || null
+        }))
         const customer = customersResult.data?.find(cust => cust.customer_id === transaction.customer_id);
 
         return {
@@ -169,7 +180,6 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
             customer_name: customer?.customer_name || transaction.customer_name
         };
     });
-
     // Return Final Response
     const totalPages = Math.ceil((totalCount || 0) / limit);
     return {

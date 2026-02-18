@@ -81,8 +81,9 @@ export default function PrintTransferPage() {
           setData(formattedData);
           setAdminFee(calculateAdminMargin(formattedData.amount)); // Default admin fee
         }
-      } catch (err: any) { 
-        setErrorMsg(err.message || "Terjadi kesalahan");
+      } catch (err) { 
+        console.log(err)
+        setErrorMsg("Terjadi kesalahan");
       } finally {
         setLoading(false);
       }

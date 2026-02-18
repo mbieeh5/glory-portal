@@ -20,9 +20,18 @@ export interface Sparepart {
   id: number;
   invoice_id: string;
   sparepart_name: string;
+  sparepart_id?: number;
   sparepart_price: number;
   sparepart_warranty: string | null;
   sparepart_variant: string | null;
+}
+
+export type SparepartPayload = {
+  id?: string | number,
+  sparepart_id : string, 
+  sparepart_name: string,
+  sparepart_price: number, 
+  sparepart_warranty?: string,
 }
 
 export interface ServicesCustomer {
