@@ -1,5 +1,5 @@
 "use server"
-import { ServiceTransaction, Sparepart, SparepartPayload } from '@/config/type';
+import { ServiceTransaction, SparepartPayload } from '@/config/type';
 import { createClient } from '../supabase/server';
 import { revalidatePath } from 'next/cache';
 
@@ -175,7 +175,7 @@ export async function updateInvoice(formData: FormData) {
         // variant: sp.sparepart_variant, 
         warranty_at_transaction: sp.sparepart_warranty 
       }));
-      console.log(itemsToUpsert, spareparts)
+      
       const { error: upsertError } = await supabase
         .schema(globalSchema)
         .from('services_sparepart_items')

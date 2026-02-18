@@ -92,52 +92,56 @@ export default function MutationsAdmin() {
   const [newStatus, setNewStatus] = useState<StatusBankEnum>(StatusBankEnum.COMPLETED);
 
   // --- FETCH DATA ---
-  const fetchTransactions = async () => {
-    setLoading(true);
-    try {
-      const { data: transactions, error } = await supabase
+const fetchTransactions = useCallback(async () => {
+  setLoading(true);
+  try {
+    const { data: transactions, error } = await supabase
       .schema('glory')
-        .from('bank_transactions')
-        .select(`*, transfer_info: bank_customers (
-            customer_name, 
-            customer_bank_account, 
-            customer_bank_name
-            ),
-            config_info: bank_config (
-            bank_name
-            )`)
-            .or('transfer_id.ilike.%CKT%,transfer_id.ilike.%SKH%')
-        .order('entry_datetime', { ascending: false });
+      .from('bank_transactions')
+      .select(`
+        *,
+        transfer_info: bank_customers (
+          customer_name, 
+          customer_bank_account, 
+          customer_bank_name
+        ),
+        config_info: bank_config (
+          bank_name
+        )
+      `)
+      .or('transfer_id.ilike.%CKT%,transfer_id.ilike.%SKH%')
+      .order('entry_datetime', { ascending: false });
 
-      if (error) throw error;
-      setData(transactions || []);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      alert('Gagal load data!');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTransactions();
+    if (error) throw error;
     
-    // REALTIME SUBSCRIPTION
-    const channel = supabase
-      .channel('bank_transactions_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'glory', table: 'bank_transactions' },
-        () => {
-          fetchTransactions();
-        }
-      )
-      .subscribe();
+    // Casting manual karena Supabase join types kadang tricky
+    setData((transactions as unknown as BankTransaction[]) || []);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    alert('Gagal load data!');
+  } finally {
+    setLoading(false);
+  }
+}, [supabase]); // Supabase masuk sini
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+useEffect(() => {
+  fetchTransactions();
+
+  const channel = supabase
+    .channel('bank_transactions_changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'glory', table: 'bank_transactions' },
+      () => {
+        fetchTransactions();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [fetchTransactions, supabase]);
 
   // --- COLUMNS ---
   const columns = useMemo<ColumnDef<BankTransaction>[]>(() => [
@@ -371,7 +375,7 @@ export default function MutationsAdmin() {
 
   const totalAdmin = useMemo(() => {
     return selectedRows.reduce((sum, t) => sum + calculateAdminMargin(t.amount), 0)
-  },[selectedRows])
+  },[selectedRows, calculateAdminMargin])
 
   const totalNominal = useMemo(() => {
     return selectedRows.reduce((sum, t) => sum + t.amount, 0);
@@ -483,7 +487,6 @@ export default function MutationsAdmin() {
       return;
     }
     
-    console.log("Cetak IDs:", selectedIds);
     alert(`Cetak ${selectedIds.length} transaksi - Coming soon!`);
   };
 
