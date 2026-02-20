@@ -14,6 +14,12 @@ export interface UserProfile {
   point: number,
 }
 
+export interface RechartsTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+}
+
 
 // --- SERVICES AREA ---
 export interface Sparepart {
@@ -104,6 +110,7 @@ export enum TransactionType {
   IN = 'IN',  // Transfer masuk
   OUT = 'OUT' // Transfer keluar
 }
+
 
 // Interface untuk Bank Config
 export interface BankConfig {
