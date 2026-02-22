@@ -307,15 +307,15 @@ CREATE TABLE IF NOT EXISTS glory.bank_config (
     updated_at timestamp with time zone default current_timestamp
 );
 
--- 2. Table Bank Customers
-CREATE TABLE IF NOT EXISTS glory.bank_customers (
-    customer_id bigserial primary key,
-    tenant_id uuid default auth.uid(),
-    customer_name varchar(100) not null,
-    customer_bank_account varchar(30) unique not null,
-    customer_bank_name varchar(30) not null,
-    updated_at timestamp with time zone default current_timestamp,
-    created_at timestamp with time zone DEFAULT current_timestamp
+-- 2. Table Bank Customers                
+CREATE TABLE IF NOT EXISTS glory.bank_customers (                 
+    customer_id bigserial primary key,                
+    tenant_id uuid default auth.uid(),                
+    customer_name varchar(100) not null,                  
+    customer_bank_account varchar(30) unique not null,                
+    customer_bank_name varchar(30) not null,                  
+    updated_at timestamp with time zone default current_timestamp,                
+    created_at timestamp with time zone DEFAULT current_timestamp                 
 );
 
 -- 3. Table Bank Transactions

@@ -14,7 +14,7 @@ export default async function searchSpareparts(query:string) {
     const { data, error } = await supabase.schema('glory')
     .from('services_parent_sparepart')
     .select('*')
-    .ilike(`sparepart_name`, `${query}%`)
+    .ilike(`sparepart_name`, `%${query}%`)
     .range(0, 5)
 
     console.log(error);

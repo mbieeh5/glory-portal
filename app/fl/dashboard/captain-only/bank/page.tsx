@@ -1,10 +1,10 @@
-'use client'; // Jangan lupa kalo pake Next.js App Router
+'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Wallet, ArrowUpRight, ArrowDownRight, AlertTriangle, 
-  Plus, FileText, RefreshCcw, Loader2
+  FileText, RefreshCcw, Loader2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
