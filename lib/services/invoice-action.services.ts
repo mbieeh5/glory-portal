@@ -37,7 +37,7 @@ export async function getInvoiceData(invoiceId: string): Promise<ServiceTransact
             console.error('Error fetching spareparts:', sparepartsError);
         }
 
-        // 3. Fetch customer
+        // 3. Fetch customer 
         const { data: customer, error: customerError } = await supabase
             .schema(globalSchema)
             .from('services_customers')

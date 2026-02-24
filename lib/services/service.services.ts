@@ -23,7 +23,7 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
         if (role === 'frontliner') {
             return query
                 .eq('owner_id', userId)
-                .is('pickedup_at', null);
+                .is('pickedup_at', null)
         }
         
         // MODERATOR: Belum di-pickup ATAU baru di-pickup HARI INI
@@ -51,6 +51,10 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
 
     // 👉 PASANG SECURITY FILTER DI SINI!
     transactionQuery = applySecurityFilter(transactionQuery);
+
+    if (params.branch && params.branch !== 'all') {
+        transactionQuery = transactionQuery.like('invoice_id', `GPS-${params.branch}%`);
+    }
 
     // Apply Date Filters
     if (params.month && params.month !== 0) {

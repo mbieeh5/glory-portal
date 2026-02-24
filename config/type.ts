@@ -13,6 +13,12 @@ export interface UserProfile {
   role: string,
   point: number,
 }
+export interface RechartsTooltipProps {
+  active?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload?: any[];
+  label?: string;
+}
 
 
 // --- SERVICES AREA ---
@@ -69,6 +75,7 @@ export interface ServiceTransaction {
 export interface PaginationParams {
     page?: number;
     limit?: number;
+    branch?: string;
     search?: string; // Global search: invoice_id, customer_name, phone_brand, technician, imei, sparepart
     month?: number; // 1-12
     year?: number; // e.g., 2024, 2025
@@ -104,6 +111,7 @@ export enum TransactionType {
   IN = 'IN',  // Transfer masuk
   OUT = 'OUT' // Transfer keluar
 }
+
 
 // Interface untuk Bank Config
 export interface BankConfig {

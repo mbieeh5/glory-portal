@@ -3,37 +3,36 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { 
-    LineChart, 
-    Line, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
-    Legend, 
-    ResponsiveContainer,
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts'
 import { 
-    Loader2, 
-    Calendar, 
-    CreditCard, 
-    Wallet,
-    ArrowUpRight
+    Loader2, Calendar, CreditCard, Wallet, ArrowUpRight, ArrowDownRight 
 } from 'lucide-react'
-import { CustomTooltipProps } from './ServiceAnalytic'
+import { RechartsTooltipProps } from '@/config/type'
 
-const COLORS = ['#2563eb', '#16a34a', '#db2777', '#ca8a04', '#9333ea', '#0891b2']
-
-type BankAnalyticsRow = {
-    transaction_date: string 
-    bank_name: string
-    total_amount: number
-    total_count: number
+// Type untuk raw data dari database
+type RawTransaction = {
+    amount: number;
+    type_transactions: string; // 'IN' atau 'OUT'
+    entry_datetime: string;
+    bank_config?: {
+        bank_name: string;
+    };
 }
 
+// Type untuk data Card per bank
+type BankSummary = {
+    bank_name: string;
+    income: number;
+    outcome: number;
+}
+
+// Type untuk Chart harian
 type ChartDataPoint = {
-    date: string
-    displayDate: string
-    [key: string]: string | number 
+    date: string;
+    displayDate: string;
+    pemasukan: number;
+    pengeluaran: number;
 }
 
 export default function BankAnalytics() {
@@ -41,8 +40,7 @@ export default function BankAnalytics() {
     const [loading, setLoading] = useState(true)
     
     const [chartData, setChartData] = useState<ChartDataPoint[]>([])
-    const [bankList, setBankList] = useState<string[]>([]) 
-    const [totals, setTotals] = useState<Record<string, number>>({}) 
+    const [bankSummaries, setBankSummaries] = useState<BankSummary[]>([]) 
 
     const [dateRange, setDateRange] = useState({
         start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
@@ -58,51 +56,65 @@ export default function BankAnalytics() {
         }).format(val)
     }
 
-    // 2. Fix Warning: Bungkus fetchData pake useCallback
     const fetchData = useCallback(async () => {
         try {
             setLoading(true)
 
+            // Tarik data langsung dari bank_transactions dan join ke bank_config buat ambil nama bank
             const { data, error } = await supabase
                 .schema('glory')
-                .from('view_bank_analytics')
-                .select('*')
-                .gte('transaction_date', dateRange.start)
-                .lte('transaction_date', dateRange.end)
-                .order('transaction_date', { ascending: true })
+                .from('bank_transactions')
+                .select(`
+                    amount,
+                    type_transactions,
+                    entry_datetime,
+                    bank_config ( bank_name )
+                `)
+                .gte('entry_datetime', `${dateRange.start}T00:00:00`)
+                .lte('entry_datetime', `${dateRange.end}T23:59:59`)
+                .order('entry_datetime', { ascending: true })
 
             if (error) throw error
 
             if (data) {
-                const typedData = data as BankAnalyticsRow[]
-                const uniqueBanks = Array.from(new Set(typedData.map(item => item.bank_name)))
-                setBankList(uniqueBanks)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const typedData = data as any as RawTransaction[]; // casting type
+                
+                const summaryMap: Record<string, BankSummary> = {}
+                const chartMap: Record<string, ChartDataPoint> = {}
 
-                const newTotals: Record<string, number> = {}
-                uniqueBanks.forEach(bank => newTotals[bank] = 0)
+                typedData.forEach(trx => {
+                    const bankName = trx.bank_config?.bank_name || 'Unknown Bank';
+                    const dateRaw = trx.entry_datetime.split('T')[0];
+                    const amount = Number(trx.amount) || 0;
+                    const isIN = trx.type_transactions.trim() === 'IN';
 
-                const processedChartData = typedData.reduce<ChartDataPoint[]>((acc, curr) => {
-                    const dateKey = curr.transaction_date 
-                    const existingEntry = acc.find(item => item.date === dateKey)
-
-                    if (newTotals[curr.bank_name] !== undefined) {
-                        newTotals[curr.bank_name] += curr.total_amount
+                    // 1. Olah data untuk Cards (Summary per Bank)
+                    if (!summaryMap[bankName]) {
+                        summaryMap[bankName] = { bank_name: bankName, income: 0, outcome: 0 };
                     }
+                    if (isIN) summaryMap[bankName].income += amount;
+                    else summaryMap[bankName].outcome += amount;
 
-                    if (existingEntry) {
-                        existingEntry[curr.bank_name] = curr.total_amount
-                    } else {
-                        acc.push({
-                            date: dateKey,
-                            displayDate: new Date(dateKey).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-                            [curr.bank_name]: curr.total_amount
-                        })
+                    // 2. Olah data untuk Chart (Pemasukan vs Pengeluaran per hari)
+                    if (!chartMap[dateRaw]) {
+                        chartMap[dateRaw] = {
+                            date: dateRaw,
+                            displayDate: new Date(dateRaw).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+                            pemasukan: 0,
+                            pengeluaran: 0
+                        };
                     }
-                    return acc
-                }, [])
+                    if (isIN) chartMap[dateRaw].pemasukan += amount;
+                    else chartMap[dateRaw].pengeluaran += amount;
+                });
 
-                setTotals(newTotals)
-                setChartData(processedChartData)
+                // Convert map ke array
+                const finalBankList = Object.values(summaryMap);
+                const finalChartData = Object.values(chartMap).sort((a, b) => a.date.localeCompare(b.date));
+
+                setBankSummaries(finalBankList)
+                setChartData(finalChartData)
             }
 
         } catch (error) {
@@ -116,28 +128,34 @@ export default function BankAnalytics() {
         fetchData()
     }, [fetchData])
 
-    // 3. Fix Error: Tooltip typed properly
-    const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+    const CustomTooltip = ({ active, payload, label }: RechartsTooltipProps) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white dark:bg-gray-800 p-3 border border-gray-100 dark:border-gray-700 rounded-lg shadow-xl text-xs">
+                <div className="bg-white dark:bg-gray-800 p-3 border border-gray-100 dark:border-gray-700 rounded-lg shadow-xl text-xs z-50">
                     <p className="font-bold text-gray-900 dark:text-white mb-2 border-b border-gray-100 dark:border-gray-700 pb-1">{label}</p>
-                    {payload.map((entry, idx) => (
+                    
+                    {payload.map((entry, idx) => {
+                        const name = entry.name as string;
+                        const value = Number(entry.value);
+                        const color = entry.color as string;
+                        
+                        return(
                         <div key={`bank-tool-${idx}`} className="flex items-center gap-2 mb-1 min-w-[150px]">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-gray-600 dark:text-gray-300 font-medium">{entry.name}:</span>
-                            <span className="font-mono font-bold ml-auto text-gray-900 dark:text-white">
-                                {formatIDR(Number(entry.value))}
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                            <span className="text-gray-600 dark:text-gray-300 font-medium capitalize">{name}:</span>
+                            <span className={`font-mono font-bold ml-auto ${entry.name === 'pemasukan' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                {formatIDR(Number(value))}
                             </span>
                         </div>
-                    ))}
+                    )
+                    })}
                 </div>
             )
         }
         return null
     }
 
-    if (loading && bankList.length === 0) return (
+    if (loading && bankSummaries.length === 0) return (
         <div className="flex items-center justify-center p-12 bg-gray-50 dark:bg-gray-900 rounded-xl min-h-[400px]">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         </div>
@@ -145,6 +163,7 @@ export default function BankAnalytics() {
 
     return (
         <div className="space-y-6">
+            {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -172,31 +191,66 @@ export default function BankAnalytics() {
                 </div>
             </div>
 
+            {/* Cards Area (Income vs Outcome per Bank) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {bankList.map((bank) => (
-                    <div key={bank} className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-colors">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                                <CreditCard className="h-5 w-5" />
+                {bankSummaries.map((bank) => (
+                    <div key={bank.bank_name} className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group hover:border-blue-500/30 transition-colors flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                                    <CreditCard className="h-5 w-5" />
+                                </div>
+                                <span className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                    {bank.bank_name}
+                                </span>
                             </div>
-                            <span className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">{bank}</span>
+                            
+                            <div className="space-y-3">
+                                {/* Income Row */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center text-xs text-green-600 dark:text-green-400 font-medium">
+                                        <div className="p-1 bg-green-50 dark:bg-green-900/30 rounded mr-2">
+                                            <ArrowUpRight className="h-3 w-3" />
+                                        </div>
+                                        IN
+                                    </div>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white font-mono">
+                                        {formatIDR(bank.income)}
+                                    </span>
+                                </div>
+                                
+                                {/* Outcome Row */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center text-xs text-red-600 dark:text-red-400 font-medium">
+                                        <div className="p-1 bg-red-50 dark:bg-red-900/30 rounded mr-2">
+                                            <ArrowDownRight className="h-3 w-3" />
+                                        </div>
+                                        OUT
+                                    </div>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white font-mono">
+                                        {formatIDR(bank.outcome)}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white font-mono tracking-tight">
-                            {formatIDR(totals[bank])}
-                        </div>
-                        <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                        
+                        {/* Background Icon Detail */}
+                        <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none">
                             <CreditCard className="h-24 w-24" />
-                        </div>
-                        <div className="mt-2 flex items-center text-[10px] text-green-600 font-medium">
-                            <ArrowUpRight className="h-3 w-3 mr-1" />
-                            Total periode ini
                         </div>
                     </div>
                 ))}
+                
+                {bankSummaries.length === 0 && !loading && (
+                    <div className="col-span-full text-center text-gray-500 py-6 text-sm">
+                        Gak ada mutasi di range tanggal ini bro.
+                    </div>
+                )}
             </div>
 
+            {/* Chart Area */}
             <div className="bg-white dark:bg-gray-900 p-4 md:p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-6">Grafik Mutasi Harian</h3>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-6">Grafik Mutasi Harian (All Banks)</h3>
                 
                 <div className="h-[350px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -221,22 +275,28 @@ export default function BankAnalytics() {
                                 tickFormatter={(val) => `${val / 1000}k`} 
                             />
                             
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<CustomTooltip active={false} payload={[]} label={''} />} />
                             
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
 
-                            {bankList.map((bank, idx) => (
-                                <Line
-                                    key={bank}
-                                    type="monotone"
-                                    dataKey={bank}
-                                    stroke={COLORS[idx % COLORS.length]} 
-                                    strokeWidth={3}
-                                    dot={{ r: 3, strokeWidth: 0 }}
-                                    activeDot={{ r: 6 }}
-                                    connectNulls 
-                                />
-                            ))}
+                            <Line
+                                type="monotone"
+                                dataKey="pemasukan"
+                                name="Pemasukan"
+                                stroke="#16a34a" // Hijau
+                                strokeWidth={3}
+                                dot={{ r: 3, strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                            />
+                            <Line
+                                type="monotone"
+                                dataKey="pengeluaran"
+                                name="Pengeluaran"
+                                stroke="#dc2626" // Merah
+                                strokeWidth={3}
+                                dot={{ r: 3, strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                            />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>

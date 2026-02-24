@@ -11,7 +11,7 @@ export default async function UpdateDataInvoiceId({
     
     // Fetch data dari server - integrate dengan RLS nanti
     const invoiceData = await getInvoiceData(invoiceId);
-    if(invoiceData?.pickedup_at !== null) {
+    if(invoiceData?.pickedup_at !== null && invoiceData?.status !== 'completed') {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
