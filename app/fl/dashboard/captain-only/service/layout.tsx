@@ -81,7 +81,7 @@ export default function ServicesRecapLayout({ children }: { children: ReactNode 
       </header>
 
       {/* BODY / CUCU */}
-      <main className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+      <main className="max-w-7xl mx-auto">
         <Suspense fallback={<LoadingScreen />}>
           {children}
         </Suspense>

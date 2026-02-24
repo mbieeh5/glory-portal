@@ -52,6 +52,10 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
     // 👉 PASANG SECURITY FILTER DI SINI!
     transactionQuery = applySecurityFilter(transactionQuery);
 
+    if (params.branch && params.branch !== 'all') {
+        transactionQuery = transactionQuery.like('invoice_id', `GPS-${params.branch}%`);
+    }
+
     // Apply Date Filters
     if (params.month && params.month !== 0) {
         const startDate = new Date(params.year || new Date().getFullYear(), params.month - 1, 1);

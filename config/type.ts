@@ -75,6 +75,7 @@ export interface ServiceTransaction {
 export interface PaginationParams {
     page?: number;
     limit?: number;
+    branch?: string;
     search?: string; // Global search: invoice_id, customer_name, phone_brand, technician, imei, sparepart
     month?: number; // 1-12
     year?: number; // e.g., 2024, 2025
