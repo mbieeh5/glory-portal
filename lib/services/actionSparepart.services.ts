@@ -17,7 +17,6 @@ export default async function searchSpareparts(query:string) {
     .ilike(`sparepart_name`, `%${query}%`)
     .range(0, 5)
 
-    console.log(error);
     if(error) return []
     
     return data.map(item => ({

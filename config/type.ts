@@ -13,9 +13,9 @@ export interface UserProfile {
   role: string,
   point: number,
 }
-
 export interface RechartsTooltipProps {
   active?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any[];
   label?: string;
 }

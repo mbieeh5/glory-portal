@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { 
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
-} from 'recharts'
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer} from 'recharts'
 import { 
     Loader2, PackageCheck, PackageX, Clock, RefreshCcw, TrendingUp, Inbox
 } from 'lucide-react'

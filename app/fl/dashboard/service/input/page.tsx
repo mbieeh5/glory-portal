@@ -145,9 +145,17 @@ export default function InputDashboardPage() {
         if (insertError) throw insertError;
         customerId = newCustomer.customer_id;
       }
-      if(!formData.invoice_id.includes("GPS-")){
-        alert('silahkan Ulangi kembali')
-        return handleReset();
+
+      let finalInvoiceId = formData.invoice_id;
+      if(!finalInvoiceId || finalInvoiceId.includes("ERROR") || !finalInvoiceId.includes("GPS-")){
+        const { data: freshId, error:rpcError } = await supabase.schema('glory')
+        .rpc('preview_next_invoice_id', {p_location: formData.service_location});
+
+        if(rpcError || !freshId){
+          alert('gagal mendapatkan Nomor Nota dari Server');
+          throw new Error("gagal mendapatkan Nomor Nota dari Server")
+        }
+        finalInvoiceId = freshId
       }
 
       // LANGKAH 2: Simpan transaksi service
@@ -155,15 +163,15 @@ export default function InputDashboardPage() {
         .schema('glory')
         .from('services_transactions')
         .insert([{
-          invoice_id: formData.invoice_id,
+          invoice_id: finalInvoiceId,
           customer_id: customerId,
-          entry_datetime: new Date(formData.entry_datetime).toISOString(), // Convert ke ISO string
+          entry_datetime: new Date(formData.entry_datetime).toISOString(),
           recipient_name: formData.recipient,
           phone_brand: formData.phone_brand,
-          phone_imei: formData.imei || null, // Null kalo kosong
+          phone_imei: formData.imei || null,
           complaint: formData.complaint,
           phisical_condition: formData.phisical_condition,
-          initial_price: parseFloat(formData.initial_price) || 0, // Convert ke number
+          initial_price: parseFloat(formData.initial_price) || 0, 
           location: formData.service_location,
           status: 'in_process'
         }]);

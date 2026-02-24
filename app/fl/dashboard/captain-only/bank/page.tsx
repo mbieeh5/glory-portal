@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Wallet, ArrowUpRight, ArrowDownRight, AlertTriangle, 
@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { BankTransaction } from '@/config/type';
 
 // Import types lu di sini (asumsi lu taro di file misal types.ts)
 // import { BankTransaction, BankConfig, TransactionType, StatusBankEnum } from './types';
@@ -33,16 +34,16 @@ const formatRp = (amount: number = 0) => {
 };
 
 export default function BanksParents() {
-  const [transactions, setTransactions] = useState<any[]>([]); // Ganti 'any' pake 'BankTransaction' kalo udah di-import
+  const [transactions, setTransactions] = useState<BankTransaction[]>([]); // Ganti 'any' pake 'BankTransaction' kalo udah di-import
   const [totalBalance, setTotalBalance] = useState(0);
   const [incomeThisMonth, setIncomeThisMonth] = useState(0);
   const [expenseThisMonth, setExpenseThisMonth] = useState(0);
   const [pendingRecap, setPendingRecap] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = createClient();
-
-  const fetchData = async () => {
+  
+  const fetchData = useCallback(async () => {
+    const supabase = createClient();
     setIsLoading(true);
     try {
       // 1. Tarik config buat Total Balance dari schema 'glory'
@@ -95,11 +96,11 @@ export default function BanksParents() {
     } finally {
       setIsLoading(false);
     }
-  };
+  },[]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   if (isLoading) {
     return (

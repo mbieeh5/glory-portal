@@ -23,7 +23,7 @@ export async function getMasterDataServices(params: PaginationParams = {}): Prom
         if (role === 'frontliner') {
             return query
                 .eq('owner_id', userId)
-                .is('pickedup_at', null);
+                .is('pickedup_at', null)
         }
         
         // MODERATOR: Belum di-pickup ATAU baru di-pickup HARI INI

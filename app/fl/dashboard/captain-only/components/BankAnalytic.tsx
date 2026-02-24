@@ -77,6 +77,7 @@ export default function BankAnalytics() {
             if (error) throw error
 
             if (data) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const typedData = data as any as RawTransaction[]; // casting type
                 
                 const summaryMap: Record<string, BankSummary> = {}
@@ -132,15 +133,22 @@ export default function BankAnalytics() {
             return (
                 <div className="bg-white dark:bg-gray-800 p-3 border border-gray-100 dark:border-gray-700 rounded-lg shadow-xl text-xs z-50">
                     <p className="font-bold text-gray-900 dark:text-white mb-2 border-b border-gray-100 dark:border-gray-700 pb-1">{label}</p>
-                    {payload.map((entry: any, idx: number) => (
+                    
+                    {payload.map((entry, idx) => {
+                        const name = entry.name as string;
+                        const value = Number(entry.value);
+                        const color = entry.color as string;
+                        
+                        return(
                         <div key={`bank-tool-${idx}`} className="flex items-center gap-2 mb-1 min-w-[150px]">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-gray-600 dark:text-gray-300 font-medium capitalize">{entry.name}:</span>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                            <span className="text-gray-600 dark:text-gray-300 font-medium capitalize">{name}:</span>
                             <span className={`font-mono font-bold ml-auto ${entry.name === 'pemasukan' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                {formatIDR(Number(entry.value))}
+                                {formatIDR(Number(value))}
                             </span>
                         </div>
-                    ))}
+                    )
+                    })}
                 </div>
             )
         }
