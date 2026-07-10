@@ -229,7 +229,7 @@ export default function InputDashboardPage() {
                 Service Transaction
               </h1>
               <p className="text-slate-600 dark:text-slate-400 mt-1">
-                Input data transaksi servis baru
+                Input data transaksi servis baru 
               </p>
             </div>
           </div>

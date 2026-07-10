@@ -39,9 +39,9 @@ export function LoginForm() {
       if (error) throw error;
       router.push("/fl/dashboard");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
       // Reset captcha setelah error
       resetCaptcha();
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }

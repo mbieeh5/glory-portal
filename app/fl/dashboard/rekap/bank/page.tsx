@@ -225,7 +225,7 @@ export default function BanksParents() {
             <div className="space-y-3">
               <button className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-zinc-800 hover:border-orange-500 dark:hover:border-orange-500 group transition-all">
                 <div>
-                <Link className="flex items-center gap-3" href={'/fl/dashboard/captain-only/bank/recap'}>
+                <Link className="flex items-center gap-3" href={'/fl/dashboard/rekap/bank/recap'}>
                   <FileText size={20} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
                   <span className="font-medium text-sm group-hover:text-orange-500 transition-colors">Pergi ke Recap</span>
                 </Link>
@@ -235,7 +235,7 @@ export default function BanksParents() {
               
               <button className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-zinc-800 hover:border-orange-500 dark:hover:border-orange-500 group transition-all">
                 <div className="flex items-center gap-3">
-                <Link className="flex items-center gap-3" href={'/fl/dashboard/captain-only/bank/statistic'}>
+                <Link className="flex items-center gap-3" href={'/fl/dashboard/rekap/bank/statistic'}>
                   <RefreshCcw size={20} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
                   <span className="font-medium text-sm group-hover:text-orange-500 transition-colors">Cek Statistik</span>
                 </Link>

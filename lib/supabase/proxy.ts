@@ -1,4 +1,4 @@
-import { bankMenus, captainMenus, serviceMenus } from "@/config/menu";
+import { bankMenus, captainMenus, rekapMenus, serviceMenus } from "@/config/menu";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -55,9 +55,9 @@ export async function updateSession(request: NextRequest) {
   // 3. RBAC Logic
   // Gabungin semua menu jadi satu object besar
   const allMenusByRole = {
-    frontliner: [...serviceMenus.frontliner, ...bankMenus.frontliner, ...captainMenus.frontliner],
-    moderator: [...serviceMenus.moderator, ...bankMenus.moderator, ...captainMenus.moderator],
-    admin: [...serviceMenus.admin, ...bankMenus.admin, ...captainMenus.admin],
+    frontliner: [...serviceMenus.frontliner, ...bankMenus.frontliner, ...captainMenus.frontliner, ...rekapMenus.frontliner],
+    moderator: [...serviceMenus.moderator, ...bankMenus.moderator, ...captainMenus.moderator, ...rekapMenus.moderator],
+    admin: [...serviceMenus.admin, ...bankMenus.admin, ...captainMenus.admin ,...rekapMenus.admin],
   };
 
   const userRole = (user.app_metadata?.role?.toLowerCase() || 'user') as keyof typeof allMenusByRole;
@@ -77,8 +77,8 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/403"; 
     return NextResponse.rewrite(url);
   }
-  /**
-   * 
+  /*
+
   if (
     request.nextUrl.pathname !== "/" &&
     !user &&
@@ -91,8 +91,9 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
-  
+
   */
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

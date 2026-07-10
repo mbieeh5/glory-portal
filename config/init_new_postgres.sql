@@ -1,4 +1,3 @@
-
 DECLARE
   matched_customer_id bigint;
   matched_customer_phone text;
@@ -59,18 +58,6 @@ BEGIN
 
   RETURN NEW;
 END;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ---------------------------------
@@ -282,7 +269,9 @@ CREATE POLICY "glory_services_customers_select_frontliner"
   );
 
 
-
+  ((((auth.jwt() -> 'app_metadata'::text) ->> 'role'::text) = ANY (ARRAY['admin'::text, 'frontliner'::text, 'moderator'::text])) AND (EXISTS ( SELECT 1
+   FROM glory.services_transactions
+  WHERE (((services_transactions.invoice_id)::text = (services_spareparts.invoice_id)::text) AND (services_transactions.owner_id = auth.uid())))))
 ---------------------------------
 --====== NEW BANK SCHEMA ======--
 ---------------------------------
@@ -535,7 +524,7 @@ BEGIN
         -- Kita hitung jumlah baris yang memenuhi syarat, kaliin 5000
         (COUNT(*)::BIGINT * 5000) as real_point
     FROM 
-        glory.services_transactions -- Ganti pake nama tabel transaksi lu bos
+        glory.services_transactions
     WHERE 
         status = 'completed' 
         AND pickedup_at IS NOT NULL
@@ -825,7 +814,7 @@ BEGIN
         bank_id,
         type_transactions,
         amount,
-        admin_fee, -- Masukin hasil hitungan tadi
+        admin_fee, -- Masukin hasil hitungan
         balance_before,
         balance_after,
         description,
@@ -855,7 +844,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION glory.submit_bank_transaction_v2(
-    p_transfer_id TEXT,
+    p_transfer_id TEXT, -- transfer ID unik dari sistem
     p_bank_id UUID, -- UUID sesuai interface bank_id
     p_amount DECIMAL(12, 2),
     p_type_transactions CHAR(3), -- misal 'OUT'
@@ -870,6 +859,7 @@ DECLARE
     v_balance_after DECIMAL(15, 2);
 BEGIN
     -- 1. UPSERT CUSTOMER (Biar gak duplikat, kalo nama/rekening sama kita ambil ID-nya)
+    -- 
     -- Ini asumsi lu mau record customer setiap transaksi
     INSERT INTO glory.bank_customers (customer_name, customer_bank_account, customer_bank_name, updated_at, created_at)
     VALUES (p_customer_name, p_customer_bank_account, p_customer_bank_name, now(), now())
@@ -1434,6 +1424,90 @@ CREATE TABLE IF NOT EXISTS glory.profiles (
     updated_at timestamp with time zone DEFAULT current_timestamp
 );
 
+CREATE TABLE IF NOT EXISTS glory.profiles (
+    id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name text,
+    role user_role DEFAULT 'user',
+    active_quest_id varchar(20) REFERENCES glory.services_quests(quest_id) ON DELETE SET NULL,
+    updated_at timestamp with time zone DEFAULT current_timestamp
+);
+
+
+
+CREATE FUNCTION IF NOT EXISTS glory.quest_trigger_fun()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_active_quest_id varchar(20);
+    v_quest_id varchar(20);
+    v_services_id uuid;
+    v_quest_trigger varchar(255);
+    v_services_spareparts_id uuid;
+BEGIN
+    -- 1. Cek apakah ada Quest Aktif di profile user
+    SELECT active_quest_id INTO v_active_quest_id
+    FROM glory.profiles
+    WHERE id = NEW.owner_id;
+
+    -- 2. Cek jika service memenuhi Syarat Quest (misal: ada sparepart tertentu)
+    IF v_active_quest_id IS NOT NULL THEN
+        SELECT quest_trigger INTO v_quest_id
+        FROM glory.global_quests
+        WHERE quest_id = v_active_quest_id;
+
+        -- 3. Cek apakah service memiliki sparepart yang sesuai dengan quest_trigger
+        SELECT id INTO v_services_spareparts_id
+        FROM glory.services_
+        WHERE invoice_id = NEW.invoice_id AND id::text = v_quest_id;
+
+        -- 4. Jika ada sparepart yang sesuai, maka update poin user dan set active_quest_id ke NULL
+        IF v_services_spareparts_id IS NOT NULL THEN
+            UPDATE glory.profiles
+            SET point = COALESCE(point, 0) + (SELECT quest_points FROM glory.global_quests WHERE quest_id = v_active_quest_id),
+                active_quest_id = NULL,
+                updated_at = current_timestamp
+            WHERE id = NEW.owner_id;
+        END IF;
+    END IF;
+
+/*
+CREATE OR REPLACE FUNCTION glory.generate_glory_ids()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_date_part TEXT := to_char(CURRENT_DATE, 'DDMMYYYY');
+    v_seq_id TEXT;
+    v_branch_code TEXT;
+    v_random_digits TEXT;
+BEGIN
+    -- 1. Logic buat CUSTOMER_ID (Format: GC-10 Digit Angka)
+    IF (TG_TABLE_NAME = 'services_customers') THEN
+        IF NEW.customer_id IS NULL THEN
+            -- Generate 10 digit angka random
+            v_random_digits := floor(random() * (9999999999 - 1000000000 + 1) + 1000000000)::text;
+            NEW.customer_id := 'GC-' || v_random_digits;
+        END IF;
+    END IF;
+
+    -- 2. Logic buat INVOICE_ID (Tetap yang lama)
+    IF (TG_TABLE_NAME = 'services_transactions') THEN
+        IF NEW.invoice_id IS NULL THEN
+            v_branch_code := CASE 
+                WHEN NEW.location IS NULL OR NEW.location = '' THEN 'GL'
+                WHEN lower(NEW.location) = 'sukahati' THEN 'SKHT'
+                WHEN lower(NEW.location) = 'cikaret' THEN 'CKRT'
+                WHEN lower(NEW.location) = 'sukabumi' THEN 'SKBM'
+                ELSE 'GL' 
+            END;
+            v_seq_id := LPAD(nextval(pg_get_serial_sequence('glory.services_transactions', 'id'))::text, 4, '0');
+            NEW.invoice_id := 'GPS-' || v_branch_code || '-' || v_seq_id || '-' || v_date_part;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+*/
+
+
 ---------------------------------
 -- ====== NEW DB SCHEMA ====== --
 ---------------------------------
@@ -1494,6 +1568,20 @@ CREATE TABLE IF NOT EXISTS glory.services_spareparts (
   created_at timestamp with time zone DEFAULT current_timestamp,
   updated_at timestamp with time zone DEFAULT current_timestamp
 );
+
+-- 4. Table Quests (for gamification)
+CREATE TABLE IF NOT EXISTS glory.global_quests (
+    id BIGSERIAL PRIMARY KEY,
+    tenant_id uuid default auth.uid(),
+    quest_id varchar(20) default 'GQ-' || LPAD(nextval(pg_get_serial_sequence('glory.global_quests', 'id'))::text, 4, '0') UNIQUE NOT NULL,
+    quest_name varchar(255) NOT NULL,
+    quest_description text,
+    quest_points integer NOT NULL,
+    quest_trigger varchar(255) REFERENCES glory.services_parent_spareparts(id) ON DELETE SET NULL,
+    created_at timestamp with time zone DEFAULT current_timestamp,
+    updated_at timestamp with time zone DEFAULT current_timestamp,
+)
+
 
 --- DKI Daerah Kekuasaan Index ---
 CREATE INDEX idx_services_transactions_invoice_id ON glory.services_transactions(invoice_id);
