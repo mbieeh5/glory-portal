@@ -1,17 +1,57 @@
 'use client'
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Phone, Smartphone, MapPin, MessageSquare, 
   Save, X, Loader2, FileText, CheckCircle2, PhoneCall, 
-  Calendar
+  Calendar, Camera, Image as ImageIcon, ScanLine, Sparkles
 } from 'lucide-react';
 import { GetNoNota } from "@/config/getNoNota";
 import { createClient } from '@/lib/supabase/client';
 
+// ==========================================================
+// SCAN NOTA FISIK via Gemini (@google/genai)
+// ==========================================================
+// Foto dikirim ke API route /api/scan-nota (server-side, API key aman di sana).
+// Gemini balikin JSON udah rapi per-field, gak perlu regex parsing manual lagi.
+// Hasilnya cuma ngisi form (preview), user tetep review sebelum "Simpan Transaksi".
+// ==========================================================
+
+type ScanNotaResult = {
+  customer_name?: string | null;
+  customer_phone_number?: string | null;
+  phone_brand?: string | null;
+  imei?: string | null;
+  complaint?: string | null;
+  initial_price?: string | null;
+  entry_date?: string | null;
+  error?: string;
+};
+
+// Convert File jadi base64 murni (tanpa prefix "data:image/...;base64,")
+const fileToBase64 = (file: File): Promise<{ base64: string; mimeType: string }> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(',')[1] || '';
+      resolve({ base64, mimeType: file.type || 'image/jpeg' });
+    };
+    reader.onerror = () => reject(new Error('Gagal membaca file gambar'));
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function InputDashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // --- State buat fitur scan nota ---
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanBanner, setScanBanner] = useState<string | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Helper function buat format datetime ke format input datetime-local
   const getLocalDateTime = () => {
@@ -100,6 +140,82 @@ export default function InputDashboardPage() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  // ==========================================================
+  // SCAN NOTA — dipanggil dari input "galeri" ATAU "kamera langsung"
+  // ==========================================================
+  const runOcrScan = async (file: File) => {
+    setIsScanning(true);
+    setScanProgress(0);
+    setScanBanner(null);
+
+    try {
+      setScanProgress(30); // encoding
+      const { base64, mimeType } = await fileToBase64(file);
+
+      setScanProgress(60); // ngirim ke Gemini
+      const res = await fetch('/api/scan-nota', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, mimeType }),
+      });
+
+      const parsed: ScanNotaResult = await res.json();
+
+      if (!res.ok || parsed.error) {
+        throw new Error(parsed.error || 'Gagal membaca nota');
+      }
+
+      setScanProgress(90);
+
+      setFormData((prev) => ({
+        ...prev,
+        customer_name: parsed.customer_name || prev.customer_name,
+        customer_phone_number: parsed.customer_phone_number || prev.customer_phone_number,
+        phone_brand: parsed.phone_brand || prev.phone_brand,
+        imei: parsed.imei || prev.imei,
+        complaint: parsed.complaint || prev.complaint,
+        initial_price: parsed.initial_price || prev.initial_price,
+        entry_datetime: parsed.entry_date
+          ? `${parsed.entry_date}T${prev.entry_datetime.split('T')[1] || '00:00'}`
+          : prev.entry_datetime,
+      }));
+
+      const filledCount = [
+        parsed.customer_name,
+        parsed.customer_phone_number,
+        parsed.phone_brand,
+        parsed.imei,
+        parsed.complaint,
+        parsed.initial_price,
+        parsed.entry_date,
+      ].filter(Boolean).length;
+
+      setScanProgress(100);
+      setScanBanner(
+        filledCount > 0
+          ? `${filledCount} field berhasil kebaca otomatis. Cek dulu ya sebelum simpen!`
+          : 'Gak ada teks yang kebaca jelas. Coba foto lebih terang/fokus, atau isi manual aja.'
+      );
+    } catch (err) {
+      console.error('Gemini scan error:', err);
+      setScanBanner('Gagal membaca foto nota. Coba lagi atau isi manual.');
+    } finally {
+      // Gak ada file yang disimpen di mana pun — cuma numpang di memory browser
+      // buat di-encode base64 lalu dikirim sekali ke server, abis itu dibuang.
+      setIsScanning(false);
+      setScanProgress(0);
+      setTimeout(() => setScanBanner(null), 5000);
+    }
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset value biar bisa pilih file yang sama lagi di lain waktu
+    e.target.value = '';
+    if (!file) return;
+    runOcrScan(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -211,6 +327,8 @@ export default function InputDashboardPage() {
     }));
   };
 
+  const scanButtonsDisabled = isLoading || showSuccess || isScanning;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
@@ -229,10 +347,81 @@ export default function InputDashboardPage() {
                 Service Transaction
               </h1>
               <p className="text-slate-600 dark:text-slate-400 mt-1">
-                Input data transaksi servis baru
+                Input data transaksi servis baru 
               </p>
             </div>
           </div>
+        </motion.div>
+
+        {/* Scan Nota Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-6 p-4 sm:p-5 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <ScanLine className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <span className="font-semibold text-slate-900 dark:text-white">
+              Scan Nota Fisik
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              (opsional, hasil tetap bisa diedit sebelum disimpan)
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              disabled={scanButtonsDisabled}
+              onClick={() => cameraInputRef.current?.click()}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-medium rounded-lg border border-blue-200 dark:border-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Camera className="w-5 h-5" />
+              Foto Langsung
+            </button>
+            <button
+              type="button"
+              disabled={scanButtonsDisabled}
+              onClick={() => galleryInputRef.current?.click()}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-lg border border-slate-200 dark:border-slate-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ImageIcon className="w-5 h-5" />
+              Pilih dari Galeri
+            </button>
+          </div>
+
+          {/* Input tersembunyi: kamera langsung (capture=environment buka kamera belakang di Chrome/Safari mobile) */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileSelected}
+          />
+          {/* Input tersembunyi: pilih dari galeri (tanpa atribut capture) */}
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileSelected}
+          />
+
+          <AnimatePresence>
+            {scanBanner && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 flex items-start gap-2 text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2"
+              >
+                <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{scanBanner}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Invoice Number Display */}
@@ -519,6 +708,42 @@ export default function InputDashboardPage() {
             <span className="font-semibold">Transaksi berhasil disimpan!</span>
           </motion.div>
         )}
+
+        {/* Scanning Overlay */}
+        <AnimatePresence>
+          {isScanning && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 max-w-sm w-full text-center"
+              >
+                <div className="mx-auto mb-4 w-14 h-14 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+                  <Loader2 className="w-7 h-7 text-blue-600 dark:text-blue-400 animate-spin" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                  Membaca Nota...
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                  Foto lagi diproses, gak disimpan kok
+                </p>
+                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                  <motion.div
+                    className="h-full bg-blue-600 dark:bg-blue-500"
+                    animate={{ width: `${scanProgress}%` }}
+                    transition={{ ease: 'easeOut' }}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-2">{scanProgress}%</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

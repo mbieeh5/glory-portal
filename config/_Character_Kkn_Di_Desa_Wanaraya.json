@@ -1,0 +1,204 @@
+{
+  "karekter_dalam_cerita": {
+    "karakter_utama": [
+        {
+        "nama": "Zyran Anderson Gilael",
+        "mbti": "INFJ",
+        "sign": "Taurus",
+        "traits": [
+            "Diam-diam mematikan",
+            "Tinggi dan atletis",
+            "Tampan dengan aura mahal",
+            "Pendiam dan irit ngomong",
+            "Selalu berpikir logis",
+            "Menjadi pusat gravitasi tim tanpa perlu memaksa"
+        ],
+        "gender": "Laki-laki",
+        "role": "Main Character (MC)"
+        },
+        {
+        "nama": "Nadia Putri Laravel",
+        "mbti": "INFJ",
+        "sign": "Scorpio",
+        "traits": [
+            "Ceplas-ceplos dan pintar berbicara",
+            "Cantik dan socially sharp",
+            "Sangat protektif dan loyal ke sahabat",
+            "Jutek setengah mati ke cowok lain",
+            "Menjadi penyeimbang dan 'suara' bagi tim"
+        ],
+        "gender": "Perempuan",
+        "role": "Sidekick / Manajer Tim"
+        },
+        {
+        "nama": "Viera Anastasya Xiera",
+        "mbti": "ESTP",
+        "sign": "Aries",
+        "traits": [
+            "Pure chaos dalam bentuk manusia",
+            "Cantik dan bar-bar",
+            "Tanpa filter dan bertindak pakai insting",
+            "Reaksi spontan, mikir belakangan",
+            "Tim offense paling brutal"
+        ],
+        "gender": "Perempuan",
+        "role": "Sidekick / Penyerang Utama"
+        },
+        {
+        "nama": "Daniel Lucas Ximenez",
+        "mbti": "ENTP",
+        "sign": "Gemini",
+        "traits": [
+            "Ganteng standar tapi pede maksimal",
+            "Berisik, santai, dan interaktif",
+            "Satu frekuensi chaos dengan Viera",
+            "Menjadi pencair suasana di dalam tim"
+        ],
+        "gender": "Laki-laki",
+        "role": "Sidekick / Icebreaker Tim"
+        }
+    ],
+    "warga_desa_dan_karakter_pendukung": [
+        {
+        "nama": "Agung Sriwidjaya (Mas Agung)",
+        "mbti": "INTJ",
+        "sign": "Scorpio",
+        "traits": [
+            "Mendiang yang penuh teka-teki",
+            "Wajahnya sangat persis dengan Zyran",
+            "Diduga sudah mengetahui kedatangan Zyran sebelum meninggal"
+        ],
+        "gender": "Laki-laki",
+        "role": "Pusat Misteri / Korban KKN Terdahulu"
+        },
+        {
+        "nama": "Dini",
+        "mbti": "ISFJ",
+        "sign": "Pisces",
+        "traits": [
+            "Perawat yang menyimpan rahasia",
+            "Trauma dengan masa lalu desa",
+            "Memberikan informasi kelam tentang mahasiswa KKN terdahulu"
+        ],
+        "gender": "Perempuan",
+        "role": "Mantan Istri Agung / Saksi Masa Lalu"
+        },
+        {
+        "nama": "Pak Bowo",
+        "mbti": "ISTJ",
+        "sign": "Taurus",
+        "traits": [
+            "Pria paruh baya dengan kemeja lusuh dan caping",
+            "Terekam kamera memakai jarik dengan tatapan melirik tajam yang menakutkan"
+        ],
+        "gender": "Laki-laki",
+        "role": "Warga Desa / Sumber Teror Visual"
+        },
+        {
+        "nama": "Bu Bowo",
+        "mbti": "ISFP",
+        "sign": "Cancer",
+        "traits": [
+            "Tertutup",
+            "Penurut",
+            "Menyimpan kejanggalan di balik sikap pendiam"
+        ],
+        "gender": "Perempuan",
+        "role": "Warga Desa / Istri Pak Bowo"
+        },
+        {
+        "nama": "Pak Broto",
+        "mbti": "ESFJ",
+        "sign": "Libra",
+        "traits": [
+            "Ramah",
+            "Menyambut rombongan anak KKN",
+            "Mempunyai rumah yang cukup nyaman untuk posko"
+        ],
+        "gender": "Laki-laki",
+        "role": "Kepala Desa / Penyedia Fasilitas Posko"
+        },
+        {
+        "nama": "Pak RT Yanto",
+        "mbti": "ESTJ",
+        "sign": "Capricorn",
+        "traits": [
+            "Tegas",
+            "Berwibawa",
+            "Sering dikunjungi untuk berkoordinasi santai"
+        ],
+        "gender": "Laki-laki",
+        "role": "Ketua RT / Aparat Desa"
+        },
+        {
+        "nama": "Bu RT Dewi",
+        "mbti": "ESFJ",
+        "sign": "Leo",
+        "traits": [
+            "Tipikal ibu warga",
+            "Banyak bicara",
+            "Mengawasi anak-anak KKN"
+        ],
+        "gender": "Perempuan",
+        "role": "Warga Desa / Istri RT"
+        },
+        {
+        "nama": "Kakek Pemancing",
+        "mbti": "INFJ",
+        "sign": "Aquarius",
+        "traits": [
+            "Tenang",
+            "Memiliki pengetahuan tentang hal-hal di luar nalar",
+            "Bisa membaca suara hati seseorang",
+            "Mengungkap fakta gila mengenai hubungan Zyran dan Mas Agung"
+        ],
+        "gender": "Laki-laki",
+        "role": "Pemberi Petunjuk"
+        },
+        {
+        "nama": "Ibu Lasmini",
+        "mbti": "ISFJ",
+        "sign": "Virgo",
+        "traits": [
+            "Telah tiada",
+            "Menjadi kunci petunjuk dari alam gaib / lewat mimpi"
+        ],
+        "gender": "Perempuan",
+        "role": "Mertua Mas Agung / Titik Penelusuran Makam"
+        },
+        {
+        "nama": "Jaka",
+        "mbti": "ISTP",
+        "sign": "Sagittarius",
+        "traits": [
+            "Pemuda lokal desa",
+            "Diam-diam mengobservasi rombongan KKN",
+            "Mencurigakan"
+        ],
+        "gender": "Laki-laki",
+        "role": "Pemuda Warga Desa"
+        },
+        {
+        "nama": "Pak Darmawan",
+        "mbti": "ESTJ",
+        "sign": "Capricorn",
+        "traits": [
+            "Disiplin",
+            "Fokus pada program kerja",
+            "Mengingatkan anak-anak KKN untuk patuh pada adat setempat"
+        ],
+        "gender": "Laki-laki",
+        "role": "Dosen Pembimbing Lapangan (DPL)"
+        }
+    ]
+  },
+  "world_building": {
+    "config": {
+        "kampus_ud": {
+            "nama": "Universitas Dirgantara",
+            "lokasi": "Jakarta",
+            "settings": "kampus yang terkenal dengan lulusan yang kompeten di hampir segala bidang dengan bangunan yang agak tua dan semi modern, dan semua jenis orang ada di sana dari berbagai macam suku dan adat semuanya membaur menjadi satu kesatuan"
+        }
+    }
+  }
+}

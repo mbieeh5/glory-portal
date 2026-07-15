@@ -1,0 +1,57 @@
+{
+  "World_Building": {
+    "Pre_Apocalypse_Setting": {
+      "City_Name": "Bogor 2026",
+      "General_Vibe": "Suasana kota sebelum hancur bener bener sangat common, suara deru mesin kendaraan dari jalanan, klakson angkot, bisingnya orang orang lalulalang yang berjualan",
+      "Zyran_Safehouse": {
+        "Location_Type": "Rumah Pribadi Zyran yang ia bangun sendiri di pinggiran kota bogor dan cukup strategis",
+        "Interior_Vibe": "Menganut gaya medieval modern, dengan perabotan kayu yang kokoh dan dekorasi medieval mulai dari wallpaper tembok, sampai lampu gantungg yang menggunakan 'lilin' LED menambahkan kesan magis, serta di atas TV ultra wide ada kepala rusa replika",
+        "Interior_Layout": "Memiliki 2 Kamar Tidur(1 Ruang tidur Tamu, 1 Ruang tidur utama Zyran. Yang masih masing memiliki kamar mandi dalam) interior kamarnya juga sama menganut Medieval. Rumah ini hanya 1 lantai tapi cukup luas, selain 2 kamar tidur, ada 1 kamar mandi tamu, 1 ruang tamu, 1 ruang keluarga yang cukup luas, dan 1 Dapur + Ruang makan"
+      },
+      "Key_Locations": [
+        {
+          "Place_Name": "Minimarket",
+          "Description": "pusat perbelanjaan kebutuhan sehari hari."
+        },
+        {
+          "Place_Name": "Fasilitas Umum",
+          "Description": "Seperti Taman Kota, Alun alun, dan Stasiun kereta api."
+        },
+        {
+          "Place_Name": "hotel",
+          "Description": "Tempat tinggal sementara."
+        },
+        {
+          "Place_Name": "mall",
+          "Description": "pusatnya perbelanjaan."
+        },
+        {
+          "Place_Name": "Indonesia",
+          "Description": "mungkin ini akan menjadi sangat luas karna mereka akan berkeliling ke berbagai daerah di indonesia"
+        }
+      ]
+    },
+    "The_Inciting_Incident": {
+      "Event_Name": "The White Ladybugs",
+      "The_Trigger": "Kepik putih yang muncul dalam skala cukup masif, yang ternyata membawa virus yang tidak teridentifikasi bahkan ilmuan pun belum sempat menelitinya. Virus ini menyebar hampir keseluruh dunia dan tidak ada yang selamat",
+      "Virus_Effects": "Virus ini menyebabkan seluruhh manusia di dunia ini kehilangan kesadaran, dan membuat setiap manusia ini berjalan menuju titik tertentu yang tidak diketahui ntah kehutan kelautan atau bahkan ke gunung sekalipun, dan mereka akan terus berjalan tanpa henti sampai kepik ini merasakan cukup untuk menghisap seluruh darah, dan yang lebih anehnya lagi adalah mereka ini tidak merasakan sakit sama sekali, jadi mereka tidak akan berhenti berjalan walaupun misalnya kakinya terpotong sekalipun, mereka tetap akan berjalan dengan sisa tubuh yang ada",
+      "First_Symptom": "Gejalanya ketika kepik ini terbang di sekitaran manusia, manusia ini tidak akan merasakan apa apa, tapi ketika virusnya sudah masuk ke aliran tubuh, mereka terdiam sejenak sebelum akhirnya muulai berjalan dengan tatapan kosong dan teratur menuju titik tertentu yang tidak diketahui, dan mereka akan terus berjalan tanpa henti sampai kepik ini merasakan cukup untuk menghisap seluruh darah di tubuh mereka.",
+      "The_Collapse_Speed": "kota ini tidak hancur secara fisik, tapi lebih ke hancur secara sosial, karena semua orang ini kehilangan kesadaran penuhnya. mungkin untuk beberapa hari pertama, listrik dan internet masih bisa menyala, tapi setelah itu semua akan mati karna ketiadaan manusia yang bisa mengoperasikan dan merawatnya, lalu setelah itu mungkin akan ada beberapa kerusakan fisik yang terjadi karena tidak ada yang merawat infrastruktur kota, seperti pipa air yang bocor, atau kebakaran yang tidak bisa dipadamkan, tapi secara umum kota ini masih utuh secara fisik, tapi sudah hancur secara sosial."
+    },
+    "Post_Apocalypse_Rules": {
+      "The_Anomalies_or_Threats": {
+        "Main_Enemy": "The White Ladybugs atau Kepik Putih",
+        "Psychological_Hazard": "kepik ini hinggap dan terbang secara acak untuk mencari inangnya.",
+        "Phisical_trait": "kepik ini walau kecil tapi memiliki kekuatan yang cukup untuk menahan tembakan senjata api, kelemahan mereka ada di bagian perutnya yang terlindungi oleh sayap yang terlihat tipis tapi keras. pada awalnya kepik ini kecil tapi karna 'makanannya' banyak jadi berevolusi jadi besar, dan yang terbesar sekitar sebesar kambing dewasa",
+        "Behavioral_trait": "kepik ini sangat sensitif dengan cahaya dan wangi darah, jadi mereka akan terbang mencari darah dan menghindari cahaya."
+      },
+      "Environmental_Rules": [
+        "Rule 1: Beberapa orang atau segelintir orang mungkin hanya hitungan jari tidak terinfeksi, karena imunitasnya yang cukup kuat, tapi mereka tidak sadar kalau mereka bisa kebal dari virus ini", 
+        "Rule 2: Listrik global akan mati atau internet dalam waktu dekat seiring berjalannya waktu karna ketiadaan manusia yang bisa memaintainnya, teknologi digital cuma bisa nyala lewat generator/baterai modifikasi Zyran & Elan.",
+        "Rule 3: Mereka ber 4 awalnya tidak saling kenal, dan ketika kejadian mereka bertemu satu per satu, ntah di jalanan atau di tempat umum",
+        "Rule 4: Keluar di malam hari sama dengan mati karena batas pandang nol dan monster lebih agresif, terlebih jika ada salah satu dari mereka yang terluka.",
+        "Rule 5: Mereka tidak tahu menahu tentang apa sebenarnya yang terjadi, dan mereka akan mencari tahu apa yang terjadi seiring berjalannya waktu."
+      ]
+    }
+  }
+}

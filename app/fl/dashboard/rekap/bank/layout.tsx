@@ -12,19 +12,19 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export default function ServicesRecapLayout({ children }: { children: ReactNode }) {
+export default function BanksRecapLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   // Konfigurasi Navigasi
   const navItems = [
     {
       label: "Recap",
-      href: "/fl/dashboard/captain-only/service/recap", // Sesuaikan path aslinya
+      href: "/fl/dashboard/rekap/bank/recap", // Sesuaikan path aslinya
       icon: LayoutDashboard,
     },
     {
       label: "Statistik",
-      href: "/fl/dashboard/captain-only/service/statistic",
+      href: "/fl/dashboard/rekap/bank/statistic",
       icon: PieChart,
     },
   ];
@@ -38,7 +38,7 @@ export default function ServicesRecapLayout({ children }: { children: ReactNode 
             
             {/* Kiri: Tombol Back */}
             <Link
-              href="/fl/dashboard/captain-only/service"
+              href="/fl/dashboard/rekap/bank"
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -81,7 +81,7 @@ export default function ServicesRecapLayout({ children }: { children: ReactNode 
       </header>
 
       {/* BODY / CUCU */}
-      <main className="max-w-7xl mx-auto">
+      <main className="mx-auto p-4 md:p-2 lg:p-4">
         <Suspense fallback={<LoadingScreen />}>
           {children}
         </Suspense>

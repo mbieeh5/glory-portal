@@ -9,7 +9,7 @@ export default function RekapDashboardPage() {
 
     return(
         <>
-            INI REKAP DASHBOARD
+                    testing
         </>
     )
 }

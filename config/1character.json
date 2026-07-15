@@ -1,0 +1,130 @@
+{
+    "Character_Info": {
+        "Main_Character": {
+            "Name": "Zyran Anderson",
+            "Gender" : "Male",
+            "Age": 25,
+            "Occupation": "Programmer and reverse engineer",
+            "Personality_Traits": {
+                "MBTI": "INFJ",
+                "Sign": "Taurus",
+                "Traits": [
+                    "Intuitive",
+                    "Creative",
+                    "Empathetic",
+                    "rasa ingin tahu yang sangat besar akan segala hal",
+                    "pintar hampir dalam segala bidang karna intuisinya",
+                    "bukan tergolong orang orang yang nerdy",
+                    "Apapun masalahnya Makan Solusinya",
+                    "karna terlalu intuitif dia seringkali terlalu cepat lelah atau social battery nya cepat habis, dan membutuhhkan waktu untuk sendiri buat beberapa waktu"
+                ]
+            },
+            "Hobbies": {
+                "Olahraga": ["bersepeda", "berenang", "jogging"],
+                "Musik": ["gitar", "music production"],
+                "Engineering": ["electrical engineering"],
+                "reading": ["horror novels", "sci-fi novels"]
+            },
+            "Capabilities": {
+                "Programming": ["Python", "C++", "Assembly", "JavaScript", "Swift"],
+                "Engineering": ["electrical engineering"],
+                "Problem Solving": ["logical thinking", "creative problem solving"],
+                "Driving": ["car", "motorcycle"],
+                "Cooking": ["Indonesian cuisine", "brewing coffee"],
+                "Survival Skills": ["navigation", "foraging"],
+                "Combat Skills": ["tidak memiliki kemampuan bertarung"]
+            }
+        },
+        "Secondary_Character": {
+            "Name": "Nadia Asmara",
+            "Gender": "Female",
+            "Age": 25,
+            "Activity": "psychology lecturer",
+            "Personality_Traits": {
+                "MBTI": "INFJ",
+                "Sign": "Sagittarius",
+                "Traits": [
+                    "Memiliki jiwa petualang",
+                    "Memiliki rasa ingin tahu yang tinggi akan segala hal",
+                    "Intuitive",
+                    "berempati tinggi",
+                    "peka terhadap emosi orang lain",
+                    "karna kepekaannya terhadap emosi orang lain dia seringkali cepat lelah atau social battery nya cepat habis, dan membutuhhkan waktu untuk sendiri buat beberapa waktu"
+                ]
+            },
+            "Hobbies": {
+                "Art": ["painting", "digital art"],
+                "Traveling": ["exploring new cultures", "trying new cuisines"],
+                "Music": ["playing piano", "attending concerts"]
+            },
+            "Capabilities": {
+                "Psychology": ["cognitive psychology", "social psychology"],
+                "Problem Solving": ["memecahkan masalah berlandaskan pemahanan psikologi"],
+                "Cooking": ["baking", "international cuisine"],
+                "Driving": ["motorcycle"],
+                "Survival Skills": ["first aid"],
+                "Combat Skills": ["basic self-defense", "strategic thinking in combat situations"]
+            }
+        },
+        "Third_Character": {
+            "Name": "Elan Kusuma",
+            "Gender": "Male",
+            "Age": 25,
+            "Occupation": "Mechanic Engineer",
+            "Personality_Traits": {
+                "MBTI": "ESFP",
+                "Sign": "Gemini",
+                "Traits": [
+                    "suka becanda",
+                    "memiliki otot yang cukup karna pekerjaannya sebagai mekanik",
+                    "Independent",
+                    "sangat bersemangat",
+                    "kadang ide ide konyol dia masuk akal buat di lakuin",
+                    "dibalik sifatnya yang suka becanda dia ini bisa jadi orang yang sangat bisa di andalkan dan paling berani ngambil tindakan nyata (action-oriented) disaat karakter lain sibuk berfikir"
+                ]
+            },
+            "Hobbies": {
+                "Singing": ["singing", "playing guitar"],
+                "Engineering": ["electrical engineering", "mechanical engineering"],
+                "Reading": ["Manual books", "comics"]
+            },
+            "Capabilities": {
+                "Engineering": ["electrical engineering", "mechanical engineering advanced"],
+                "Problem Solving": ["logical thinking", "creative problem solving"],
+                "Driving": ["car", "motorcycle"],
+                "Survival Skills": ["navigation", "path opener", "logistics carrying"],
+                "Combat Skills": ["basic hand-to-hand combat", "improvised weapons"]
+            }
+        },
+        "Fourth_Character": {
+            "Name": "Viera Anastasia",
+            "Gender": "Female",
+            "Age": 25,
+            "Occupation": "physics student",
+            "Personality_Traits": {
+                "MBTI": "ESTP",
+                "Sign": "Virgo",
+                "Traits": [
+                    "sangat perhatian terhadap detail termasuk detail kecil",
+                    "Creative",
+                    "memiliki pemikiran yang sangat logis dan terukur",
+                    "kadang candaannya harus membuat orang lain berpikir untuk bisa mengerti",
+                    "suka sekali dengan hal hal yang berbau sains dan teknologi",
+                    "walau dia suka membaca puisi, tapi dia tidak melihat sebagai wadah kegalauan melainkan sebagai struktur matematis kata kata yang punya pola estetis tersendiri"
+                ]
+            },
+            "Hobbies": {
+                "Art": ["painting", "drawing"],
+                "Writing": ["journaling", "creative writing", "calculating theories"],
+                "Reading": ["poetry", "self-help books"]
+            },
+            "Capabilities": {
+                "Physics": ["quantum physics", "thermodynamics", "logical reasoning"],
+                "Problem Solving": ["analytical thinking", "creative problem solving"],
+                "Driving": ["none"],
+                "Survival Skills": ["Logistics management", "efficient resource allocation", "Cartography"],
+                "Combat Skills": ["basic self-defense", "strategic thinking in combat situations"]
+            }
+        }
+    }
+}

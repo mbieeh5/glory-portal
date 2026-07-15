@@ -1,4 +1,4 @@
-import { Wrench, Landmark, Construction, FileSliders } from "lucide-react";
+import { Wrench, Landmark, FileSliders } from "lucide-react";
 
 export const ModuleMenus = [
     {
@@ -34,25 +34,25 @@ export const ModuleMenus = [
     {
       id: "treasury",
       title: "GLORY REKAP",
-      subtitle: "Under Development",
-      desc: "Modul ini sedang dalam pengembangan sistem. Akses ditutup sementara oleh Engineering.",
-      href: "#",
-      icon: Construction,
+      subtitle: "Rekap Data Service Bank dan Uang Harian",
+      desc: "Rekap data service, bank, dan uang harian untuk laporan keuangan.",
+      href: "/fl/dashboard/rekap",
+      icon: FileSliders,
       accent: "border-yellow-900/30 border-dashed bg-yellow-900/5", 
       textAccent: "text-yellow-600",
       bgGradient: "from-transparent to-transparent",
       iconBg: "bg-yellow-900/10 border-yellow-900/30",
       iconColor: "text-yellow-600",
-      stat: "MAINTENANCE",
+      stat: "ONLINE",
       disabled: false,
     },
     {
       id: "secret",
       title: "CAPTAIN ONLY",
-      subtitle: "For Recap and Check Only",
-      desc: "Rekap Data Bank, dan Service All in one. control pelanggan dan lain lain",
+      subtitle: "Control Pelanggan, Point, dan Lainnya",
+      desc: "Fitur khusus untuk kapten, mengatur pelanggan, point, dan pengaturan lainnya.",
       href: "/fl/dashboard/captain-only",
-      icon: FileSliders,
+      icon: Wrench,
       accent: "border-red-900/30 border-dashed bg-red-900/5", 
       textAccent: "text-red-600",
       bgGradient: "from-transparent to-transparent",

@@ -1,5 +1,5 @@
 // ==========================================
-// 🛠️ SERVICE DUNGEON MENUS
+// 🛠️ SERVICES DUNGEON MENUS
 // ==========================================
 export const serviceMenus = {
   // Role: FRONTLINER
@@ -31,7 +31,7 @@ export const serviceMenus = {
 
 
 // ==========================================
-// 🏦 BANK DUNGEON MENUS
+// 🏦 BANK$ DUNGEON MENUS
 // ==========================================
 export const bankMenus = {
   // Role: FRONTLINER
@@ -69,10 +69,32 @@ export const captainMenus = {
   // Role: ADMIN
   admin: [
     { label: 'Dashboard', href: '/fl/dashboard/captain-only', icon: "LayoutDashboard" }, // Dashboard utama untuk user
-    { label: 'Services', href: '/fl/dashboard/captain-only/service', icon: "History" }, // Halaman Cek mutasi lengkap atau *Master Data*
-    { label: 'Bank', href: '/fl/dashboard/captain-only/bank', icon: "Wallet" }, // Halaman untuk memindahkan Saldo atau Menambah saldo
+    { label: 'Services', href: '/fl/dashboard/rekap/service', icon: "History" }, // Halaman Cek mutasi lengkap atau *Master Data*
+    { label: 'Bank', href: '/fl/dashboard/rekap/bank', icon: "Wallet" }, // Halaman untuk memindahkan Saldo atau Menambah saldo
     { label: 'Kelola Saldo', href: '/fl/dashboard/captain-only/balance-control', icon: "Wrench" }, // Halaman cetak struk transfer
-    { label: 'Kelola Point', href: '/fl/dashboard/captain-only/point-control', icon: "Wrench" }, // Halaman cetak struk transfer
     { label: 'Kelola Pelanggan', href: '/fl/dashboard/captain-only/customers-editor', icon: "Wrench" }, // Halaman cetak struk transfer
+  ]
+};
+
+
+
+
+// ==========================================
+// 🏦 R3K4P DUNGEON MENUS
+// ==========================================
+export const rekapMenus = {
+  // Role: FRONTLINER (BLOCKED - Gak punya menu)
+  frontliner: [],
+
+  // Role: MODERATOR (BLOCKED - Gak punya menu)
+  moderator: [],
+  
+  // Role: ADMIN
+  admin: [
+    { label: 'Dashboard', href: '/fl/dashboard/rekap', icon: "LayoutDashboard" }, 
+    { label: 'Services', href: '/fl/dashboard/rekap/service', icon: "History" }, 
+    { label: 'Bank', href: '/fl/dashboard/rekap/bank', icon: "History" }, 
+    { label: 'Harian', href: '/fl/dashboard/rekap/harian', icon: "History" }, 
+
   ]
 };
