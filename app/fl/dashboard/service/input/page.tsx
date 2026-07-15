@@ -152,7 +152,7 @@ export default function InputDashboardPage() {
 
     try {
       setScanProgress(30); // encoding
-      /*const { base64, mimeType } = await fileToBase64(file);
+      const { base64, mimeType } = await fileToBase64(file);
 
       setScanProgress(60); // ngirim ke Gemini
       const res = await fetch('/api/scan-nota', {
@@ -197,7 +197,7 @@ export default function InputDashboardPage() {
         filledCount > 0
           ? `${filledCount} field berhasil kebaca otomatis. Cek dulu ya sebelum simpen!`
           : 'Gak ada teks yang kebaca jelas. Coba foto lebih terang/fokus, atau isi manual aja.'
-      );*/
+      );
     } catch (err) {
       console.error('Gemini scan error:', err);
       setScanBanner('Gagal membaca foto nota. Coba lagi atau isi manual.');
@@ -373,7 +373,7 @@ export default function InputDashboardPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
-              disabled={true}
+              disabled={scanButtonsDisabled}
               onClick={() => cameraInputRef.current?.click()}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-medium rounded-lg border border-blue-200 dark:border-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -382,7 +382,7 @@ export default function InputDashboardPage() {
             </button>
             <button
               type="button"
-              disabled={true}
+              disabled={scanButtonsDisabled}
               onClick={() => galleryInputRef.current?.click()}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-lg border border-slate-200 dark:border-slate-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
