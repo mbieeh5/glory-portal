@@ -72,7 +72,6 @@ export const captainMenus = {
     { label: 'Services', href: '/fl/dashboard/rekap/service', icon: "History" }, // Halaman Cek mutasi lengkap atau *Master Data*
     { label: 'Bank', href: '/fl/dashboard/rekap/bank', icon: "Wallet" }, // Halaman untuk memindahkan Saldo atau Menambah saldo
     { label: 'Kelola Saldo', href: '/fl/dashboard/captain-only/balance-control', icon: "Wrench" }, // Halaman cetak struk transfer
-    { label: 'Kelola Point', href: '/fl/dashboard/captain-only/point-control', icon: "Wrench" }, // Halaman cetak struk transfer
     { label: 'Kelola Pelanggan', href: '/fl/dashboard/captain-only/customers-editor', icon: "Wrench" }, // Halaman cetak struk transfer
   ]
 };
