@@ -1,0 +1,196 @@
+{
+  "yunizka": {
+    "2025-12": {
+      "label": "Desember 2025",
+      "totalNota": 72,
+      "totalPoint": 360000,
+      "notaList": []
+    },
+    "2024-10": {
+      "label": "Oktober 2024",
+      "totalNota": 49,
+      "totalPoint": 245000,
+      "notaList": []
+    },
+    "2024-12": {
+      "label": "Desember 2024",
+      "totalNota": 60,
+      "totalPoint": 300000,
+      "notaList": []
+    },
+    "2024-08": {
+      "label": "Agustus 2024",
+      "totalNota": 39,
+      "totalPoint": 195000,
+      "notaList": []
+    },
+    "2025-09": {
+      "label": "September 2025",
+      "totalNota": 96,
+      "totalPoint": 480000,
+      "notaList": []
+    },
+    "2025-08": {
+      "label": "Agustus 2025",
+      "totalNota": 90,
+      "totalPoint": 450000,
+      "notaList": []
+    },
+    "2025-04": {
+      "label": "April 2025",
+      "totalNota": 74,
+      "totalPoint": 370000,
+      "notaList": []
+    },
+    "2025-11": {
+      "label": "November 2025",
+      "totalNota": 77,
+      "totalPoint": 385000,
+      "notaList": []
+    },
+    "2025-03": {
+      "label": "Maret 2025",
+      "totalNota": 75,
+      "totalPoint": 375000,
+      "notaList": []
+    },
+    "2024-11": {
+      "label": "November 2024",
+      "totalNota": 57,
+      "totalPoint": 285000,
+      "notaList": []
+    },
+    "2025-06": {
+      "label": "Juni 2025",
+      "totalNota": 70,
+      "totalPoint": 350000,
+      "notaList": []
+    },
+    "2025-05": {
+      "label": "Mei 2025",
+      "totalNota": 81,
+      "totalPoint": 405000,
+      "notaList": []
+    },
+    "2026-01": {
+      "label": "Januari 2026",
+      "totalNota": 75,
+      "totalPoint": 375000,
+      "notaList": []
+    },
+    "2025-01": {
+      "label": "Januari 2025",
+      "totalNota": 53,
+      "totalPoint": 265000,
+      "notaList": []
+    },
+    "2025-10": {
+      "label": "Oktober 2025",
+      "totalNota": 85,
+      "totalPoint": 425000,
+      "notaList": []
+    },
+    "2025-07": {
+      "label": "Juli 2025",
+      "totalNota": 45,
+      "totalPoint": 225000,
+      "notaList": []
+    },
+    "null": {
+      "label": "undefined null",
+      "totalNota": 2,
+      "totalPoint": 10000,
+      "notaList": []
+    },
+    "2024-09": {
+      "label": "September 2024",
+      "totalNota": 54,
+      "totalPoint": 270000,
+      "notaList": []
+    },
+    "2025-02": {
+      "label": "Februari 2025",
+      "totalNota": 65,
+      "totalPoint": 325000,
+      "notaList": []
+    },
+    "2026-02": {
+      "label": "Februari 2026",
+      "totalNota": 1,
+      "totalPoint": 5000,
+      "notaList": []
+    }
+  },
+  "ana": {
+    "2026-01": {
+      "label": "Januari 2026",
+      "totalNota": 55,
+      "totalPoint": 275000,
+      "notaList": []
+    },
+    "2025-11": {
+      "label": "November 2025",
+      "totalNota": 55,
+      "totalPoint": 275000,
+      "notaList": []
+    },
+    "2025-12": {
+      "label": "Desember 2025",
+      "totalNota": 57,
+      "totalPoint": 285000,
+      "notaList": []
+    },
+    "2025-10": {
+      "label": "Oktober 2025",
+      "totalNota": 28,
+      "totalPoint": 140000,
+      "notaList": []
+    },
+    "2026-02": {
+      "label": "Februari 2026",
+      "totalNota": 1,
+      "totalPoint": 5000,
+      "notaList": []
+    }
+  },
+  "yuniska": {
+    "2024-07": {
+      "label": "Juli 2024",
+      "totalNota": 34,
+      "totalPoint": 170000,
+      "notaList": []
+    }
+  },
+  "kia": {
+    "2026-01": {
+      "label": "Januari 2026",
+      "totalNota": 57,
+      "totalPoint": 285000,
+      "notaList": []
+    },
+    "2025-12": {
+      "label": "Desember 2025",
+      "totalNota": 59,
+      "totalPoint": 295000,
+      "notaList": []
+    },
+    "2025-11": {
+      "label": "November 2025",
+      "totalNota": 27,
+      "totalPoint": 135000,
+      "notaList": []
+    },
+    "null": {
+      "label": "undefined null",
+      "totalNota": 2,
+      "totalPoint": 10000,
+      "notaList": []
+    },
+    "2026-02": {
+      "label": "Februari 2026",
+      "totalNota": 2,
+      "totalPoint": 10000,
+      "notaList": []
+    }
+  }
+}

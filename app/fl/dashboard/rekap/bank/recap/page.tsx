@@ -1,5 +1,5 @@
 import LoadingScreen from "@/components/LoadingScreen";
-import MutationsAdmin from "@/components/MutationAdmin";
+import MutationsAdmin from "@/components/MutationAdmin/MutationAdmin";
 import { Suspense } from "react";
 
 

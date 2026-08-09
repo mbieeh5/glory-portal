@@ -1,0 +1,21 @@
+parser = https://wa.me/${noHpConverter}?text=
+
+// Text H-1 Before the Warranty Expired!
+
+Pelanggan Yth,
+Terima kasih telah mempercayakan perbaikan Handphone Anda kepada Glory Part Station. 🙏
+Kami ingin mengetahui perkembangan perangkat Anda setelah perbaikan. Apakah saat ini sudah berfungsi dengan baik?
+\n
+⏰ PENGINGAT GARANSI:
+Kami informasikan bahwa masa garansi service Anda akan berakhir dalam 1 (satu) hari lagi.
+Apabila terdapat keluhan atau kerusakan yang sama seperti sebelumnya, kami persilakan Anda untuk datang kembali ke outlet kami agar dapat segera kami bantu cek dan tangani.
+Sebagai bentuk komitmen pelayanan kami, jangan ragu untuk menghubungi kami kembali jika ada kendala.
+\n
+📌 Simpan nomor kami untuk bantuan instan dan informasi penting seputar produk dan layanan langsung di chat Anda!
+\n
+Terima kasih dan semoga hari Anda menyenangkan!
+\n— GPS Team —
+
+
+// Text For Invoicing From Chat *required
+`Nota Services ${NoNota}, dibuat oleh ${penerima}.%0A%0A Haii Ka ${NamaUser}, ini dari Glory Cell, mau infokan untuk handphone ${MerkHp} dengan kerusakan ${keluhan} sudah selesai dan bisa diambil sekarang ya. Untuk Pengambilan Handphonenya dimohon bawa kembali nota servicenya ya kak, dan ini untuk invoicenya. Terimakasih%0A%0Ahttps://invoice.rrafproject.com/struk?noNota=${NoNota}%0A%0A *Glory Cell* %0A *${Alamat}* %0A *Hubungi kami lebih mudah, simpan nomor ini!*Follow IG Kami :* @glorycell.official `

@@ -104,7 +104,7 @@ export type SparepartItems = NonNullable<ServiceTransaction['spareparts']>[numbe
 export enum StatusBankEnum {
   COMPLETED = 'completed',
   PENDING = 'pending',
-  FAILED = 'failed'
+  FAILED = 'canceled'
 }
 
 export enum TransactionType {
@@ -112,6 +112,17 @@ export enum TransactionType {
   OUT = 'OUT' // Transfer keluar
 }
 
+export type TotalAmount = {
+  CKT: number;
+  SKH: number;
+  CKTLength: number;
+  SKHLength: number;
+}
+
+export type TotalAmountLainLain = {
+  intLength: number;
+  intAmount: number;
+}
 
 // Interface untuk Bank Config
 export interface BankConfig {
